@@ -1,0 +1,64 @@
+{% extends "otree/BaseAdmin.html" %}
+{% load staticfiles  %}
+{% block title %}
+List of mTurk HITs
+{% endblock %}
+
+{% block content %}
+<link href="{% static "otree_tools/css/toggle.css" %}" rel="stylesheet">
+
+
+<h4>Sandbox:
+    <label class="switch">
+
+      <input type="checkbox" class="switch-input" value="1" checked disabled>
+      <span class="switch-label" data-on="On" data-off="Off"></span>
+      <span class="switch-handle"></span>
+    </label>
+</h4>
+
+{% if mturk_errors %}
+<div class="alert alert-danger">{{mturk_errors}}</div>
+{%endif%}
+{% if balance %}
+<div class="alert alert-success">Your balance: <b>{{balance}}</b></div>{%endif%}
+{% if hits %}
+<table class="table table-hover table-responsive table-striped">
+    <thead>
+    <tr>
+        <th>HIT Id</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Expire at</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for hit in hits %}
+    <tr>
+        <td><a href="{% url 'assignments_list' hit.HITId %} ">{{hit.HITId|truncatechars:10}}</a></td>
+        <td>
+            {{hit.Title|truncatechars:50}}
+        </td>
+        <td>{{hit.HITStatus}}</td>
+        <td>{{hit.Expiration}}</td>
+        <td>{% include 'otree_tools/includes/hit-btn-group.html' with cur_hit=hit %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{%endif%}
+
+{% endblock %}
+
+{% block internal_styles %}
+
+{{ block.super }}
+table td {
+vertical-align: middle !important;
+}
+td div.btn-group {
+vertical-align: middle !important;
+}
+{% endblock %}
+

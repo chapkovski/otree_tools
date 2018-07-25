@@ -1,0 +1,23 @@
+{% extends "otree/BaseAdmin.html" %}
+{% load staticfiles  %}
+{% block title %}
+Reject assignment {{assignment.AssignmentId}}
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {% if mturk_errors %}
+        <div class="alert alert-danger">{{mturk_errors}}</div>
+    {% else %}
+        {{ form.as_p }}
+    {%endif%}
+    <a href="{% url 'hits_list' %}" class="btn btn-default btn-lg active" role="button">Cancel</a>
+    <button type="submit" class="btn btn-danger btn-lg active">Reject assignment</button>
+</form>
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "otree/BaseAdmin.html" %}
+{% load staticfiles  %}
+{% block title %}
+List of assignments for the HIT {{hit.HITId}}
+{% endblock %}
+
+{% block content %}
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h4>Title: {{hit.Title}}</h4>
+        <h4>Status: {{hit.HITStatus}}</h4>
+        <h4>Expiration date: {{hit.Expiration}}</h4>
+        <div class="btn-group">
+            {% if hit.NumberOfAssignmentsAvailable > 0 %}
+                <a href="{% url 'expire_hit_back' hit.HITId %}" role="button" class="btn btn-success ">Expire HIT</a>
+                <a href="{% url 'change_expiration_back' hit.HITId  %}" role="button" class="btn btn-info ">Change expiration date</a>
+            {% endif %}
+            {% if hit.Deletable %}
+                <a href="{% url 'delete_hit' hit.HITId  %}" role="button" class="btn btn-danger" id="hit-delete">Delete HIT</a>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+
+{% if assignments %}
+<h3>Assignments</h3>
+<table class="table table-hover table-responsive table-striped">
+    <thead>
+    <tr>
+        <th>Assignment ID</th>
+        <th>Status</th>
+        {% if submitted_assignments %}<th></th>{% endif %}
+        <th>Worker ID</th>
+        <th></th>
+    </tr>
+
+    </thead>
+    <tbody>
+
+    {% for assignment in assignments %}
+    <tr>
+        <td>{{assignment.AssignmentId|truncatechars:10}}</td>
+        <td>{{assignment.AssignmentStatus}}</td>
+
+        {% if assignment.AssignmentStatus == 'Submitted' %}
+        <td>
+            <form action="">
+                <div class="btn-group">
+                    <a href="{% url 'approve_assignment' assignment.AssignmentId %}" role='button'
+                       class="btn btn-success btn-sm">Approve</a>
+                    <a href="{% url 'reject_assignment' assignment.AssignmentId %}" role='button'
+                       class="btn btn-danger btn-sm">Reject</a>
+                </div>
+            </form>
+        </td>
+        {% endif %}
+        {% if assignment.AssignmentStatus == 'Rejected' %}
+        <td>
+            <a role="button" href="{% url 'approve_assignment' assignment.AssignmentId %}"
+               class="btn btn-success btn-sm">Re-accept</a>
+        </td>
+        {% endif %}
+        <td>{{assignment.WorkerId}}</td>
+        {% if assignment.AssignmentStatus == 'Approved' %}
+        <td><a class="btn btn-default btn-sm  " role="button"
+               href="{% url 'send_bonus'  assignment.AssignmentId %}">Send bonus</a>
+        </td>
+        {% endif %}
+
+        <td><a class="btn btn-default btn-sm " role="button"
+               href="{% url 'send_message' assignment.AssignmentId %}">Send
+            message</a></td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+
+    <div class="alert alert-info">This HIT does not contain completed assignments.</b></div>
+
+{%endif%}
+
+<a href="{% url 'hits_list' %}" class="btn btn-default btn-lg " role="button">Back</a>
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+
+{% endblock %}
+{% block internal_scripts %}
+{{ block.super }}
+<script>
+
+</script>
+<script src="{% static 'otree_tools/js/ajax_delete_hit.js' %}"></script>
+<script src="{% static 'otree_tools/js/ajax_change_expiration_hit.js' %}"></script>
+{% endblock %}

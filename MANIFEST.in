@@ -1,0 +1,7 @@
+include README.rst
+graft otree_tools/templates/*
+
+# added by check_manifest.py
+include LICENSE
+recursive-include otree_tools *.css
+recursive-include otree_tools *.js

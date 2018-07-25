@@ -1,0 +1,10 @@
+{% for f in filka %}
+<tr>
+    <td>{{ f.title }}</td>
+    <td>{{ f.comment}}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center bg-warning">No test objects</td>
+</tr>
+{% endfor %}
