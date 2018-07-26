@@ -8,7 +8,7 @@ Installation:
 ***************
 1. **Either**:
 
-- type ``pip install otree-tools`` in your terminal window.
+- type ``pip install otree_tools`` in your terminal window.
 
 
 2. **or**:

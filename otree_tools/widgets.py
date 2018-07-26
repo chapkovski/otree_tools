@@ -16,7 +16,7 @@ class OtherTextInput(widgets.TextInput):
 
 
 class OtherSelectorWidget(widgets.MultiWidget):
-    template_name = 'widgets/multiwidget.html'
+    template_name = 'otree_tools/widgets/multiwidget.html'
 
     def __init__(self, other_val='other', choices=None, attrs=None):
         self.choices = choices
