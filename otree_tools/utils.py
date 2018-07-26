@@ -7,6 +7,6 @@ def get_seconds_per_page(player, page_name):
     try:
         page_info = PageCompletion.objects.get(participant=participant, subsession_pk=subsession_pk,
                                                page_name=page_name)
-    except PageCompletion:
+    except PageCompletion.DoesNotExist:
         raise ValueError('Cannot find info about this page')
     return page_info.seconds_on_page
