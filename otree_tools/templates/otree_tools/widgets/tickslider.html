@@ -1,0 +1,108 @@
+{% load otree static %}
+<h1>{{ widget }}</h1>
+
+<div id="main">
+    {% if widget.attrs.show_value %}
+        {% if widget.attrs.show_block == 'left' %}
+            <div class="sliderinfoblocks sliderblockleft">{{ widget.attrs.slider_start_value }}</div>
+        {% endif %}
+    {% endif %}
+    <div class="sliderouter">
+        <div id="slider1"></div>
+        <input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id }}"
+               value="{{ widget.attrs.slider_start_value }}">
+    </div>
+    {% if widget.attrs.show_value %}
+        {% if widget.attrs.show_block == 'right' %}
+            <div class="sliderinfoblocks sliderblockright">Green</div>
+        {% endif %}
+    {% endif %}
+</div>
+
+
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+
+
+<script src="{% static 'jquery-ui/jquery.ui.labeledslider.js' %}"></script>
+<link rel="stylesheet" href="{% static 'jquery-ui/jquery.ui.labeledslider.css' %}">
+<script>
+    $(function () {
+        $('#slider1').labeledslider({
+            orientation: 'horizontal',
+            min: {{ widget.attrs.min|json }},
+            max: {{ widget.attrs.max|json }},
+            value: {{widget.attrs.slider_start_value|json}},
+            step:{{ widget.attrs.step }},
+            tickInterval: {{ widget.attrs.tick_interval }},
+            secondaryTicks: {{ widget.attrs.secondary_ticks|json }},
+            showLabels: {{ widget.attrs.show_ticks|json }},
+            {#            TODO: add an option to add custom labels here #}
+            {#            tickArray: [12,18],#}
+            {#            tickLabels: {#}
+            {#                12: 'cat',#}
+            {#                18: 'dog',#}
+            {#            },#}
+            slide: function (event, ui) {
+                var handleIndex = $(ui.handle).data('uiSliderHandleIndex');
+                var label = handleIndex == 0 ? '.sliderblockleft' : '#max';
+                $(label).html( ui.value);
+                $('#{{widget.attrs.id}}').val(ui.value);
+            },
+            create: function (event, ui) {
+            }
+
+        });
+
+    });
+</script>
+
+<style>
+
+    .sliderinfoblocks {
+        width: auto;
+        max-width: 10%;
+        font-size: 1rem;
+        padding: .375rem .75rem;
+        text-align: center;
+        min-width: 60px !important;
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        min-height: 1rem;
+    }
+
+    .sliderinfoblocks:after, .sliderinfoblocks:before {
+        box-sizing: border-box;
+    }
+
+    .sliderblockleft {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .sliderblockright {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    #main {
+        width: auto;
+        height: auto;
+    {#            border: 1px solid black;#} display: -webkit-flex; /* Safari */
+        -webkit-align-items: center; /* Safari 7.0+ */
+        display: flex;
+        align-items: center;
+    }
+
+    #main .sliderouter {
+        margin-top: 65px;
+    }
+
+    #main div {
+        -webkit-flex: 1; /* Safari 6.1+ */
+        flex: 1;
+    }
+
+</style>

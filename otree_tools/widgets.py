@@ -64,3 +64,50 @@ class OtherSelectorWidget(widgets.MultiWidget):
         radio_data = self.widgets[0].value_from_datadict(data, files, name + '_0')
         text_data = self.widgets[1].value_from_datadict(data, files, name + '_1')
         return [radio_data, text_data]
+
+
+
+permitted_info_block = ['left', 'right']
+non_permitted_block_msg = 'Choose between two options: {}'.format(' or '.join(permitted_info_block))
+
+
+class AdvancedSliderWidget(widgets.NumberInput):
+    template_name = 'otree_tools/widgets/tickslider.html'
+    default_min = 0
+    default_max = 10
+    defaul_med_value = 5
+    default_step = 1
+
+    def __init__(self, show_ticks=True, show_value=True, show_block='left', *args, **kwargs):
+        self.show_ticks = show_ticks
+        self.show_value = show_value
+        assert show_block in permitted_info_block, non_permitted_block_msg
+        self.show_block = show_block
+        super().__init__(*args, **kwargs)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        wi_attrs = context['widget']['attrs']
+        wi_attrs.setdefault('min', self.default_min)
+        wi_attrs.setdefault('max', self.default_max)
+        wi_attrs.setdefault('step', self.default_step)
+        wi_attrs.setdefault('tick_interval', self.default_step)
+        wi_attrs.setdefault('secondary_ticks', True)
+        wi_attrs.setdefault('show_ticks', True)
+        self.defaul_med_value = (wi_attrs['min'] + wi_attrs['max']) / 2
+        wi_attrs['slider_start_value'] = int(value) if value is not None else int(self.defaul_med_value)
+        wi_attrs['show_value'] = self.show_value
+        wi_attrs['show_block'] = self.show_block
+
+        return context
+
+
+
+        # TODO: when Chris includes form.media to the template, stop adding jquery-ui to each field which is absu
+        # class Media:
+        #     css = {
+        #         'all': ('jquery-ui/jquery-ui.min.css',
+        #                 'css/slider.css',)
+        #     }
+        #     js = ('jquery-ui/jquery-ui.min.js',
+        #           'js/slider.js',)
