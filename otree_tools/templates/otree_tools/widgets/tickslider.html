@@ -1,14 +1,14 @@
 {% load otree static %}
-<h1>{{ widget }}</h1>
+
 
 <div id="main">
     {% if widget.attrs.show_value %}
         {% if widget.attrs.show_block == 'left' %}
-            <div class="sliderinfoblocks sliderblockleft">{{ widget.attrs.slider_start_value }}</div>
+            <div class="sliderinfoblocks sliderblockleft" id="info_{{ widget.attrs.id }}">{{ widget.attrs.slider_start_value }}</div>
         {% endif %}
     {% endif %}
     <div class="sliderouter">
-        <div id="slider1"></div>
+        <div id="{{widget.attrs.id}}" class="slider"></div>
         <input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id }}"
                value="{{ widget.attrs.slider_start_value }}">
     </div>
@@ -29,7 +29,7 @@
 <link rel="stylesheet" href="{% static 'jquery-ui/jquery.ui.labeledslider.css' %}">
 <script>
     $(function () {
-        $('#slider1').labeledslider({
+        $('div.slider#{{widget.attrs.id}}').labeledslider({
             orientation: 'horizontal',
             min: {{ widget.attrs.min|json }},
             max: {{ widget.attrs.max|json }},
@@ -38,17 +38,12 @@
             tickInterval: {{ widget.attrs.tick_interval }},
             secondaryTicks: {{ widget.attrs.secondary_ticks|json }},
             showLabels: {{ widget.attrs.show_ticks|json }},
-            {#            TODO: add an option to add custom labels here #}
-            {#            tickArray: [12,18],#}
-            {#            tickLabels: {#}
-            {#                12: 'cat',#}
-            {#                18: 'dog',#}
-            {#            },#}
+
             slide: function (event, ui) {
                 var handleIndex = $(ui.handle).data('uiSliderHandleIndex');
-                var label = handleIndex == 0 ? '.sliderblockleft' : '#max';
+                var label = handleIndex == 0 ? '.sliderblockleft#info_{{ widget.attrs.id }}' : '#max';
                 $(label).html( ui.value);
-                $('#{{widget.attrs.id}}').val(ui.value);
+                $('input#{{widget.attrs.id}}').val(ui.value);
             },
             create: function (event, ui) {
             }
@@ -90,7 +85,7 @@
     #main {
         width: auto;
         height: auto;
-    {#            border: 1px solid black;#} display: -webkit-flex; /* Safari */
+
         -webkit-align-items: center; /* Safari 7.0+ */
         display: flex;
         align-items: center;
