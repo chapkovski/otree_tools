@@ -37,6 +37,7 @@
             secondaryTicks: {{ widget.attrs.secondary_ticks|json }},
             showLabels: {{ widget.attrs.show_ticks|json }},
             ndigits:{{ widget.attrs.ndigits|json }},
+            suffix:{{ widget.attrs.suffix|json }},
             slide: function (event, ui) {
                 var handleIndex = $(ui.handle).data('uiSliderHandleIndex');
                 var label = handleIndex == 0 ? '.sliderblockleft#info_{{ widget.attrs.id }}' : '#max';

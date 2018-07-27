@@ -82,6 +82,7 @@ class AdvancedSliderWidget(widgets.NumberInput):
     default_nsteps = 10
     default_med_value = 5
     ndigits = 0
+    suffix = ''
 
     def __init__(self, show_ticks=True, show_value=True, show_block='left', ndigits=None, *args, **kwargs):
         self.show_ticks = show_ticks
@@ -116,6 +117,7 @@ class AdvancedSliderWidget(widgets.NumberInput):
             a_['step'] = self.set_steps(a_['min'], a_['max'])
         self.set_digits(a_['step'])
         a_['ndigits'] = self.ndigits
+
         a_.setdefault('tick_interval', a_['step'])
         a_.setdefault('secondary_ticks', True)
         a_.setdefault('show_ticks', True)
@@ -123,6 +125,7 @@ class AdvancedSliderWidget(widgets.NumberInput):
         if self.ndigits==0:
             self.default_med_value = int(self.default_med_value )
         a_['slider_start_value'] = value if value is not None else self.default_med_value
+        a_.setdefault('suffix', self.suffix)
         a_['show_value'] = self.show_value
         a_['show_block'] = self.show_block
         return context

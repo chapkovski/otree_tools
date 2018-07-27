@@ -56,7 +56,8 @@ function floatSafeRemainder(val, step) {
             tickArray: [],
             secondaryTicks: true,
             showLabels: true,
-            ndigits:0
+            ndigits:0,
+            suffix:''
         },
 
         uiSlider: null,
@@ -107,6 +108,7 @@ function floatSafeRemainder(val, step) {
                 ta = tickArray.length > 0,
                 stp = this.options.step,
                 ndigits=this.options.ndigits,
+                sf=this.options.suffix,
                 label, pt,
                 j = 0,
                 i = 0;
@@ -118,7 +120,8 @@ function floatSafeRemainder(val, step) {
             for (; j <= cnt; j += stp) {
                 i = parseFloat(j).toFixed(ndigits);
                 if (( !ta && floatSafeRemainder(i, inr) == 0 ) || ( ta && tickArray.indexOf(i + min) > -1 )) {
-                    label = labels[i + min] ? labels[i + min] : (this.options.tweenLabels ? parseFloat(parseFloat(i) + parseFloat(min)).toFixed(ndigits) : '');
+                    var lb_candidate = (parseFloat(parseFloat(i) + parseFloat(min)).toFixed(ndigits)).toString()+sf ;
+                    label = labels[i + min] ? labels[i + min] : (this.options.tweenLabels ? lb_candidate : '');
                     $('<div>').addClass('ui-slider-label-ticks bold-tick')
                         .css(dir, (Math.round(( i / cnt ) * 10000) / 100) + '%')
                         .html('<span>' + ( label ) + '</span>')
