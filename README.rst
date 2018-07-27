@@ -22,3 +22,11 @@ Installation:
         'otree',
         'otree_tools',
     ]
+
+
+
+## Version History
+***************
+
+0.0.4: An `AdvancedSliderWidget` is added to `widgets`
+0.0.5: An `AdvancedSliderWidget` is updated to work with float numbers

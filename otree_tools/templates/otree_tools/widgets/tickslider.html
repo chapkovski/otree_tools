@@ -1,6 +1,4 @@
 {% load otree static %}
-
-
 <div id="main">
     {% if widget.attrs.show_value %}
         {% if widget.attrs.show_block == 'left' %}
@@ -20,7 +18,7 @@
 </div>
 
 
-<script src="http://code.jquery.com/jquery.js"></script>
+<!--<script src="http://code.jquery.com/jquery.js"></script>-->
 <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
 
@@ -38,7 +36,7 @@
             tickInterval: {{ widget.attrs.tick_interval }},
             secondaryTicks: {{ widget.attrs.secondary_ticks|json }},
             showLabels: {{ widget.attrs.show_ticks|json }},
-
+            ndigits:{{ widget.attrs.ndigits|json }},
             slide: function (event, ui) {
                 var handleIndex = $(ui.handle).data('uiSliderHandleIndex');
                 var label = handleIndex == 0 ? '.sliderblockleft#info_{{ widget.attrs.id }}' : '#max';
@@ -66,10 +64,12 @@
         border: 1px solid #ced4da;
         border-radius: .25rem;
         min-height: 1rem;
+        margin-top: -65px;
     }
 
     .sliderinfoblocks:after, .sliderinfoblocks:before {
         box-sizing: border-box;
+
     }
 
     .sliderblockleft {
@@ -85,14 +85,14 @@
     #main {
         width: auto;
         height: auto;
-
+        margin-top:10px;
         -webkit-align-items: center; /* Safari 7.0+ */
         display: flex;
         align-items: center;
     }
 
     #main .sliderouter {
-        margin-top: 65px;
+
     }
 
     #main div {

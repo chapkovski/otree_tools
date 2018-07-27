@@ -29,7 +29,19 @@
  *  jquery.ui.mouse.js
  *  jquery.ui.slider.js
  */
+
 /* a very minor update done by Philipp Chapkovski, to provide an option to draw secondary ticks w/out labels*/
+function floatSafeRemainder(val, step) {
+    val = parseFloat(val);
+    step = parseFloat(step);
+    var valDecCount = (val.toString().split('.')[1] || '').length;
+    var stepDecCount = (step.toString().split('.')[1] || '').length;
+    var decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
+    var valInt = parseInt(val.toFixed(decCount).replace('.', ''));
+    var stepInt = parseInt(step.toFixed(decCount).replace('.', ''));
+    return (valInt % stepInt) / Math.pow(10, decCount);
+}
+
 (function ($, undefined) {
 
 
@@ -44,6 +56,7 @@
             tickArray: [],
             secondaryTicks: true,
             showLabels: true,
+            ndigits:0
         },
 
         uiSlider: null,
@@ -93,14 +106,19 @@
                 tickArray = this.options.tickArray,
                 ta = tickArray.length > 0,
                 stp = this.options.step,
+                ndigits=this.options.ndigits,
                 label, pt,
+                j = 0,
                 i = 0;
 
-            $lbl.html('');
-            for (; i <= cnt; i++) {
-                if (( !ta && i % inr == 0 ) || ( ta && tickArray.indexOf(i + min) > -1 )) {
-                    label = labels[i + min] ? labels[i + min] : (this.options.tweenLabels ? i + min : '');
 
+            $lbl.html('');
+
+
+            for (; j <= cnt; j += stp) {
+                i = parseFloat(j).toFixed(ndigits);
+                if (( !ta && floatSafeRemainder(i, inr) == 0 ) || ( ta && tickArray.indexOf(i + min) > -1 )) {
+                    label = labels[i + min] ? labels[i + min] : (this.options.tweenLabels ? parseFloat(parseFloat(i) + parseFloat(min)).toFixed(ndigits) : '');
                     $('<div>').addClass('ui-slider-label-ticks bold-tick')
                         .css(dir, (Math.round(( i / cnt ) * 10000) / 100) + '%')
                         .html('<span>' + ( label ) + '</span>')
@@ -108,7 +126,7 @@
 
                 }
                 else {
-                    if (i % stp == 0 && sectick == true) {
+                    if (floatSafeRemainder(i, stp) == 0 && sectick == true) {
                         $('<div>').addClass('ui-slider-label-ticks')
                             .css(dir, (Math.round(( i / cnt ) * 10000) / 100) + '%')
                             .appendTo($lbl);

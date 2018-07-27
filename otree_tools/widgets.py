@@ -1,4 +1,6 @@
 from django.forms import widgets
+import numbers
+import math
 
 # for decompression
 divider = ':'
@@ -34,10 +36,10 @@ class OtherSelectorWidget(widgets.MultiWidget):
         # this one is needed only for a yet empty field
         # print('VALUE::::', self.decompress(value))
         if isinstance(value, list):
-            con['widget']['show_other_inbox'] =  value[0] == self.other_val
+            con['widget']['show_other_inbox'] = value[0] == self.other_val
         else:
             if isinstance(value, str):
-                con['widget']['show_other_inbox'] = self.decompress(value)[0]== self.other_val
+                con['widget']['show_other_inbox'] = self.decompress(value)[0] == self.other_val
         return con
 
     def decompress(self, value):
@@ -66,39 +68,63 @@ class OtherSelectorWidget(widgets.MultiWidget):
         return [radio_data, text_data]
 
 
-
 permitted_info_block = ['left', 'right']
 non_permitted_block_msg = 'Choose between two options: {}'.format(' or '.join(permitted_info_block))
+no_range_set_err_msg = 'Both max and min parameters should be set to use this slider'
 
 
 class AdvancedSliderWidget(widgets.NumberInput):
     template_name = 'otree_tools/widgets/tickslider.html'
-    default_min = 0
-    default_max = 10
-    defaul_med_value = 5
-    default_step = 1
+    # TODO: provide a chance for user not to give min and max
+    # default_min = 0
+    # default_max = 10
+    # default_range = 10
+    default_nsteps = 10
+    default_med_value = 5
+    ndigits = 0
 
-    def __init__(self, show_ticks=True, show_value=True, show_block='left', *args, **kwargs):
+    def __init__(self, show_ticks=True, show_value=True, show_block='left', ndigits=None, *args, **kwargs):
         self.show_ticks = show_ticks
         self.show_value = show_value
+        self.ndigits = ndigits
         assert show_block in permitted_info_block, non_permitted_block_msg
         self.show_block = show_block
         super().__init__(*args, **kwargs)
 
+    def set_steps(self, smin, smax):
+        slider_range = smax - smin
+        step = round(slider_range / self.default_nsteps, 2)
+        return step
+
+    def set_digits(self, step):
+        if self.ndigits is None:
+            if isinstance(step, int):
+                self.ndigits = 0
+                return
+            frac, _ = math.modf(step)
+            strfrac = str(frac).split('.')[1]
+            self.ndigits = len(strfrac)
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        wi_attrs = context['widget']['attrs']
-        wi_attrs.setdefault('min', self.default_min)
-        wi_attrs.setdefault('max', self.default_max)
-        wi_attrs.setdefault('step', self.default_step)
-        wi_attrs.setdefault('tick_interval', self.default_step)
-        wi_attrs.setdefault('secondary_ticks', True)
-        wi_attrs.setdefault('show_ticks', True)
-        self.defaul_med_value = (wi_attrs['min'] + wi_attrs['max']) / 2
-        wi_attrs['slider_start_value'] = int(value) if value is not None else int(self.defaul_med_value)
-        wi_attrs['show_value'] = self.show_value
-        wi_attrs['show_block'] = self.show_block
-
+        a_ = context['widget']['attrs']
+        assert all(i in a_ for i in ['min', 'max']), no_range_set_err_msg
+        # TODO: allow user to skip max/min providing default options (partly based on step/tick_interval options)
+        # wi_attrs.setdefault('min', self.default_min)
+        # wi_attrs.setdefault('max', self.default_max)
+        if not isinstance(a_.get('step'), numbers.Number):
+            a_['step'] = self.set_steps(a_['min'], a_['max'])
+        self.set_digits(a_['step'])
+        a_['ndigits'] = self.ndigits
+        a_.setdefault('tick_interval', a_['step'])
+        a_.setdefault('secondary_ticks', True)
+        a_.setdefault('show_ticks', True)
+        self.default_med_value = round((a_['min'] + a_['max']) / 2, self.ndigits)
+        if self.ndigits==0:
+            self.default_med_value = int(self.default_med_value )
+        a_['slider_start_value'] = value if value is not None else self.default_med_value
+        a_['show_value'] = self.show_value
+        a_['show_block'] = self.show_block
         return context
 
 
