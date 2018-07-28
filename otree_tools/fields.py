@@ -1,12 +1,14 @@
 from django.db import models
 import json
 from .widgets import OtherSelectorWidget, divider
-from django.forms.fields import MultiValueField, CharField
+from django.forms.fields import MultiValueField, CharField, MultipleChoiceField
 from otree.common_internal import expand_choice_tuples
 from django.core.exceptions import ValidationError
-
+from django.forms import CheckboxSelectMultiple
+from django.core import  checks
 duplicate_err_msg = 'One of the choices duplicates with the internal name for "Other" choice field'
 wrong_value_msg = 'Please provide a valid name for other_value. It should look like Python variable (no spaces etc.)'
+wrong_type_err_msg = 'Please provide a choices option for ListField which should be either a list or tuple of values'
 
 
 class OtherModelField(models.CharField):
@@ -65,3 +67,64 @@ class OtherFormField(MultiValueField):
                 return '{}{}{}'.format(self.other_value, divider, data_list[1])
             else:
                 return data_list[0]
+
+
+class ListField(models.CharField):
+    def check(self, **kwargs):
+
+        errors = super().check(**kwargs)
+        if self.inner_choices is None:
+            errors.extend([
+                checks.Error(
+                    "'ListField should be provided with choices'",
+                    obj=self,
+                    id='fields.E919',
+                )
+                ])
+        return errors
+
+    def __init__(
+            self,
+            *,
+            choices=None,
+            max_length=10000,
+            blank=False,
+            **kwargs):
+        kwargs.update(dict(
+            choices=choices,
+        ))
+        self.inner_choices=kwargs.pop('choices', None)
+        kwargs.setdefault('help_text', '')
+        kwargs.setdefault('null', True)
+        if isinstance(self.inner_choices, (list, tuple)):
+            self.inner_choices = list(expand_choice_tuples(self.inner_choices))
+
+        super().__init__(
+            choices=None,
+            max_length=max_length,
+            blank=None,
+            **kwargs)
+
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+
+        if value is None:
+            return value
+
+        return json.loads(value)
+
+    def get_prep_value(self, value):
+        return json.dumps(value)
+
+    def formfield(self, **kwargs):
+        if self.inner_choices is not None:
+            return MultipleChoiceField(choices=self.inner_choices,
+                                       label=self.verbose_name, required=not self.blank,
+                                       widget=CheckboxSelectMultiple(choices=self.inner_choices),
+                                       **kwargs)
+
+# widget=forms.CheckboxSelectMultiple(choices=OPTIONS),
