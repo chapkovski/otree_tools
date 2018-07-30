@@ -32,3 +32,4 @@ Installation:
 0.0.5: An `AdvancedSliderWidget` is updated to work with float numbers
 0.0.6: An `AdvancedSliderWidget` has a new option 'suffix' which is added to each label
 0.0.7: `ListField` is added as a possible field to render multiple choice selector
+0.0.8: Temporarily removing static jquery-ui files
