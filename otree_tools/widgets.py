@@ -1,7 +1,7 @@
 from django.forms import widgets
 import numbers
 import math
-
+from django.forms import CheckboxSelectMultiple
 # for decompression
 divider = ':'
 
@@ -140,3 +140,6 @@ class AdvancedSliderWidget(widgets.NumberInput):
         #     }
         #     js = ('jquery-ui/jquery-ui.min.js',
         #           'js/slider.js',)
+
+class ToolsCheckboxSelectMultiple(CheckboxSelectMultiple):
+    input_type='checkbox'

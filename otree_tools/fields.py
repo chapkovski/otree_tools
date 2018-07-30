@@ -1,11 +1,12 @@
 from django.db import models
 import json
-from .widgets import OtherSelectorWidget, divider
-from django.forms.fields import MultiValueField, CharField, MultipleChoiceField
+from .widgets import OtherSelectorWidget, divider, ToolsCheckboxSelectMultiple
+from django.forms.fields import MultiValueField, CharField, MultipleChoiceField,ChoiceField
 from otree.common_internal import expand_choice_tuples
 from django.core.exceptions import ValidationError
-from django.forms import CheckboxSelectMultiple
-from django.core import  checks
+
+from django.core import checks
+
 duplicate_err_msg = 'One of the choices duplicates with the internal name for "Other" choice field'
 wrong_value_msg = 'Please provide a valid name for other_value. It should look like Python variable (no spaces etc.)'
 wrong_type_err_msg = 'Please provide a choices option for ListField which should be either a list or tuple of values'
@@ -76,10 +77,39 @@ class ListField(models.CharField):
         if self.inner_choices is None:
             errors.extend([
                 checks.Error(
-                    "'ListField should be provided with choices'",
+                    "ListField should be provided with choices",
                     obj=self,
                     id='fields.E919',
                 )
+            ])
+        if not isinstance(self.inner_choices, (list, tuple)):
+            errors.extend([
+                checks.Error(
+                    "ListField should be provided with choices parameter: either list or tuple",
+                    obj=self,
+                    id='fields.E920',
+                )
+            ])
+        # TODO: what if default is not in choices?
+        # TODO: add label/verbose name, and other stuff
+        default_value = kwargs.get('default')
+        if default_value is not None:
+            if not isinstance(default_value, (list, tuple)):
+                errors.extend([
+                    checks.Error(
+                        "Initial value should be either list or tuple",
+                        obj=self,
+                        id='fields.E921',
+                    )
+                ])
+
+            if not all(i in self.inner_choices for i in default_value):
+                errors.extend([
+                    checks.Error(
+                        "Initial values should be item(s) in your 'choices' list",
+                        obj=self,
+                        id='fields.E921',
+                    )
                 ])
         return errors
 
@@ -87,18 +117,29 @@ class ListField(models.CharField):
             self,
             *,
             choices=None,
+            label=None,
             max_length=10000,
+            doc='',
+            initial=None,
             blank=False,
             **kwargs):
         kwargs.update(dict(
             choices=choices,
+            label=label,
+            initial=initial,
         ))
-        self.inner_choices=kwargs.pop('choices', None)
+
+        self.inner_choices = kwargs.pop('choices', None)
+
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null', True)
+        label = kwargs['label']
+        kwargs.setdefault('verbose_name', label)
+        kwargs.setdefault('default', kwargs.pop('initial', None))
+
         if isinstance(self.inner_choices, (list, tuple)):
             self.inner_choices = list(expand_choice_tuples(self.inner_choices))
-
+        kwargs.setdefault('verbose_name', kwargs.pop('label'))
         super().__init__(
             choices=None,
             max_length=max_length,
@@ -124,7 +165,7 @@ class ListField(models.CharField):
         if self.inner_choices is not None:
             return MultipleChoiceField(choices=self.inner_choices,
                                        label=self.verbose_name, required=not self.blank,
-                                       widget=CheckboxSelectMultiple(choices=self.inner_choices),
+                                       widget=ToolsCheckboxSelectMultiple(choices=self.inner_choices),
                                        **kwargs)
 
 # widget=forms.CheckboxSelectMultiple(choices=OPTIONS),
