@@ -226,7 +226,6 @@ class UpdateExpirationView(vanilla.FormView):
 
     def get_form(self, data=None, files=None, **kwargs):
         cls = self.get_form_class()
-        # print()
         return cls(data=data, files=files, initial={'expire_time': self.HIT['Expiration']})
 
     def get_success_url(self):

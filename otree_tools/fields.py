@@ -1,9 +1,10 @@
 from django.db import models
 import json
-from .widgets import OtherSelectorWidget, divider, ToolsCheckboxSelectMultiple
-from django.forms.fields import MultiValueField, CharField, MultipleChoiceField,ChoiceField
+from .widgets import OtherSelectorWidget, divider
+from django.forms.fields import MultiValueField, CharField, MultipleChoiceField, ChoiceField
 from otree.common_internal import expand_choice_tuples
 from django.core.exceptions import ValidationError
+from django.forms import CheckboxSelectMultiple
 
 from django.core import checks
 
@@ -70,9 +71,24 @@ class OtherFormField(MultiValueField):
                 return data_list[0]
 
 
+class MultiSelectFormField(MultipleChoiceField):
+    widget = CheckboxSelectMultiple
+
+    def __init__(self, *args, **kwargs):
+        self.max_choices = kwargs.pop('max_choices', 0)
+        super(MultiSelectFormField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        if not value and self.required:
+            raise ValidationError(self.error_messages['required'])
+        # todo: pluralize max_choices
+        if value and self.max_choices and len(value) > self.max_choices:
+            raise ValidationError('You must select a maximum of {} choices.'.format(self.max_choices))
+        return value
+
+
 class ListField(models.CharField):
     def check(self, **kwargs):
-
         errors = super().check(**kwargs)
         if self.inner_choices is None:
             errors.extend([
@@ -92,7 +108,8 @@ class ListField(models.CharField):
             ])
         # TODO: what if default is not in choices?
         # TODO: add label/verbose name, and other stuff
-        default_value = kwargs.get('default')
+        default_value = self.initial
+
         if default_value is not None:
             if not isinstance(default_value, (list, tuple)):
                 errors.extend([
@@ -102,8 +119,8 @@ class ListField(models.CharField):
                         id='fields.E921',
                     )
                 ])
-
-            if not all(i in self.inner_choices for i in default_value):
+            inner_choices_flat = [i[0] for i in self.inner_choices]
+            if not all(i in inner_choices_flat for i in default_value):
                 errors.extend([
                     checks.Error(
                         "Initial values should be item(s) in your 'choices' list",
@@ -117,26 +134,33 @@ class ListField(models.CharField):
             self,
             *,
             choices=None,
+            max_choices=None,
             label=None,
             max_length=10000,
             doc='',
             initial=None,
             blank=False,
             **kwargs):
+
         kwargs.update(dict(
             choices=choices,
             label=label,
             initial=initial,
+            max_choices=max_choices,
         ))
 
         self.inner_choices = kwargs.pop('choices', None)
-
+        if self.inner_choices is not None:
+            self.max_choices = kwargs.pop('max_choices', len(self.inner_choices))
+        else:
+            kwargs.pop('max_choices')
+        self.initial = initial
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null', True)
         label = kwargs['label']
         kwargs.setdefault('verbose_name', label)
         kwargs.setdefault('default', kwargs.pop('initial', None))
-
+        self.initial = kwargs['default']
         if isinstance(self.inner_choices, (list, tuple)):
             self.inner_choices = list(expand_choice_tuples(self.inner_choices))
         kwargs.setdefault('verbose_name', kwargs.pop('label'))
@@ -163,9 +187,8 @@ class ListField(models.CharField):
 
     def formfield(self, **kwargs):
         if self.inner_choices is not None:
-            return MultipleChoiceField(choices=self.inner_choices,
-                                       label=self.verbose_name, required=not self.blank,
-                                       widget=ToolsCheckboxSelectMultiple(choices=self.inner_choices),
-                                       **kwargs)
-
-# widget=forms.CheckboxSelectMultiple(choices=OPTIONS),
+            return MultiSelectFormField(choices=self.inner_choices,
+                                        label=self.verbose_name, required=not self.blank,
+                                        widget=CheckboxSelectMultiple(choices=self.inner_choices),
+                                        max_choices=self.max_choices,
+                                        **kwargs)

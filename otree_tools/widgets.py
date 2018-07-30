@@ -1,7 +1,7 @@
 from django.forms import widgets
 import numbers
 import math
-from django.forms import CheckboxSelectMultiple
+
 # for decompression
 divider = ':'
 
@@ -34,7 +34,6 @@ class OtherSelectorWidget(widgets.MultiWidget):
         con['wrap_label'] = True
         con['other_val'] = self.other_val
         # this one is needed only for a yet empty field
-        # print('VALUE::::', self.decompress(value))
         if isinstance(value, list):
             con['widget']['show_other_inbox'] = value[0] == self.other_val
         else:
@@ -141,5 +140,3 @@ class AdvancedSliderWidget(widgets.NumberInput):
         #     js = ('jquery-ui/jquery-ui.min.js',
         #           'js/slider.js',)
 
-class ToolsCheckboxSelectMultiple(CheckboxSelectMultiple):
-    input_type='checkbox'
