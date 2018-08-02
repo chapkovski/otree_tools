@@ -8,9 +8,10 @@ class ButtonTagError(Exception):
 register = template.Library()
 
 
-@register.inclusion_tag('otree_tools/tags/TimeTracker.html')
+@register.inclusion_tag('otree_tools/tags/TimeTracker.html', takes_context=True)
 def tracking_time(context, *args, **kwargs):
-    return {}
+    participant = context['participant']
+    return context
 
 
 @register.inclusion_tag('otree_tools/tags/Button.html', takes_context=True)
@@ -20,5 +21,5 @@ def button(context, label='', *args, **kwargs):
             # need double {{ to escape because of .format()
             '{{% chat %}} tag received unrecognized parameter "{}"'.format(kwarg)
         )
-    context['label']=label
+    context['label'] = label
     return context

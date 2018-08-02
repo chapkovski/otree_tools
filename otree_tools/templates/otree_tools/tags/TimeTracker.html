@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load static otree %}
+<h1>jopa</h1>
+<script>
+    $(function () {
+        var unloadingwindowtime = new Date(),
+            submittingformtime = new Date();
 
-</body>
-</html>
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}";
+        $(window).on('beforeunload', function () {
+            unloadingwindowtime = new Date().getTime();
+            console.log('unloading window(((');
+            console.log('WHEN???', $.now());
+            console.log('TIME DIFF:::', unloadingwindowtime - submittingformtime);
+        });
+        $('form#form').on('submit', function () {
+            submittingformtime = new Date().getTime();
+            console.log('submitting form')
+            console.log('WHEN???', $.now());
+        });
+        var socket = new ReconnectingWebSocket(ws_path);
+        socket.onopen = function (event) {
+            console.log('connected to oTree');
+        };
+        socket.onclose = function (event) {
+            console.log('discontnecting');
+        }
+        socket.onmessage = function (event) {
+            var obj = jQuery.parseJSON(event.data);
+            console.log(obj);
+        };
+    })
+    ;
+</script>
+
