@@ -7,16 +7,26 @@
 
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
         var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}";
+
+        function sendingEvent(event_type, timestamp) {
+            var msg = JSON.stringify({
+                'eventtype': event_type,
+                'timestamp': timestamp,
+            });
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(msg));
+            }
+            ;
+        }
+
         $(window).on('beforeunload', function () {
             unloadingwindowtime = new Date().getTime();
-            console.log('unloading window(((');
-            console.log('WHEN???', $.now());
-            console.log('TIME DIFF:::', unloadingwindowtime - submittingformtime);
+            sendingEvent(1, unloadingwindowtime);
         });
         $('form#form').on('submit', function () {
             submittingformtime = new Date().getTime();
-            console.log('submitting form')
-            console.log('WHEN???', $.now());
+            sendingEvent(0, submittingformtime);
+
         });
         var socket = new ReconnectingWebSocket(ws_path);
         socket.onopen = function (event) {
