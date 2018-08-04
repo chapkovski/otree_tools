@@ -33,11 +33,10 @@ EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnect
 class OpenEnterEventManager(models.Manager):
 
     def get_queryset(self):
-        print('somewhere here i ask for queryset in custom manager')
         return super().get_queryset().filter(closed=False)
 
-    def close_all(self, participant):
-        q = self.get_queryset().filter(participant=participant)
+    def close_all(self, participant, page_name):
+        q = self.get_queryset().filter(participant=participant, page_name=page_name)
         q.update(closed=True)
 
 
@@ -53,7 +52,7 @@ class EnterEvent(models.Model):
     participant = models.ForeignKey(to=Participant, related_name='enters')
     timestamp = models.DateTimeField()
     closed = models.BooleanField(default=False)
-
+    closed_at = models.DateTimeField(null=True)
     def __str__(self):
         return 'id: {}, Enter: {}; time: {}; closed: {}'.format(self.pk, self.page_name, self.timestamp, self.closed)
 

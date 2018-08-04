@@ -6,7 +6,7 @@
             submittingformtime = new Date();
 
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}";
+        var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}";
 
         function sendingEvent(event_type, timestamp) {
             var msg = JSON.stringify({

@@ -3,6 +3,8 @@ import vanilla
 from .export import export_wide
 from otree.models import Session
 from django.shortcuts import render
+from django.views.generic import ListView
+
 
 # BLOCK FOR MTURK HITS
 from django.conf import settings
@@ -25,6 +27,23 @@ from .forms import (UpdateExpirationForm)
 # END OF BLOCK
 
 from contextlib import contextmanager
+from .models import EnterEvent, ExitEvent
+# TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
+class TimeStampList(ListView):
+    template_name = 'otree_tools/all_timespent_list.html'
+    url_name = 'time_spent_timestamps'
+    url_pattern = r'^time_spent_per_page/$'
+    display_name = 'Time spent per page'
+
+    def get(self, request, *args, **kwargs):
+        ...
+
+
+class TimeStampList(vanilla.TemplateView):
+    ...
+
+# END OF TIME STAMPS BLOCK
+
 
 
 def check_if_deletable(h):

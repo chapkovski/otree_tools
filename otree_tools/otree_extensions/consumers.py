@@ -7,10 +7,11 @@ import time
 
 
 class TimeTracker(JsonWebsocketConsumer):
-    url_pattern = (r'^/timetracker/(?P<participant_code>[a-zA-Z0-9_-]+)$')
+    url_pattern = (r'^/timetracker/(?P<participant_code>[a-zA-Z0-9_-]+)/(?P<page_name>[a-zA-Z0-9_-]+)$')
 
     def clean_kwargs(self):
         self.participant_code = self.kwargs['participant_code']
+        self.page_name = self.kwargs['page_name']
 
     def get_unclosed_enter_event(self):
         o = EnterEvent.opened.all()
@@ -36,9 +37,9 @@ class TimeTracker(JsonWebsocketConsumer):
 
     def connect(self, message, **kwargs):
         participant = self.get_participant()
-        EnterEvent.opened.close_all(participant)
+        EnterEvent.opened.close_all(participant, self.page_name, )
         # TODO: record actual passed time onopen, not datetime.now()
-        participant.enters.create(page_name=participant._current_page_name,
+        participant.enters.create(page_name=self.page_name,
                                   timestamp=datetime.now())
 
     def disconnect(self, message, **kwargs):
@@ -48,5 +49,7 @@ class TimeTracker(JsonWebsocketConsumer):
         if latest_entry is not None:
             latest_entry.exits.create(timestamp=datetime.now(),
                                       exit_type=2)
+            # TODO: can be potentially an issue if they already move on further....
+            print("CURPAGE!!!!! ", self.page_name)
 
-            EnterEvent.opened.close_all(participant)
+            EnterEvent.opened.close_all(participant, self.page_name)

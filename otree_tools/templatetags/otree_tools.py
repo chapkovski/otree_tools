@@ -11,6 +11,7 @@ register = template.Library()
 @register.inclusion_tag('otree_tools/tags/TimeTracker.html', takes_context=True)
 def tracking_time(context, *args, **kwargs):
     participant = context['participant']
+    context['page_name'] = context['view'].__class__.__name__
     return context
 
 
