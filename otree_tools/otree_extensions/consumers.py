@@ -1,12 +1,10 @@
-from channels.generic.websockets import JsonWebsocketConsumer
-from otree.models import Participant
-from datetime import datetime
-from otree_tools.models import EnterEvent, ExitEvent
 import json
-import time
+from datetime import datetime
+
+from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
-from otree.models_concrete import ParticipantToPlayerLookup
-from django.contrib.contenttypes.fields import GenericForeignKey
+from otree.models import Participant
+from otree_tools.models import EnterEvent
 
 
 class TimeTracker(JsonWebsocketConsumer):

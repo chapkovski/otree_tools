@@ -1,35 +1,23 @@
-from otree.views.export import get_export_response
 import vanilla
-from .export import export_wide
-from otree.models import Session
+from botocore.exceptions import NoCredentialsError, EndpointConnectionError
+from django.db.models import Count, Min, OuterRef, Subquery
+from django.db.models import ExpressionWrapper, F, DurationField
 from django.shortcuts import render
 from django.views.generic import ListView
-
+from otree.models import Session
+from otree.views.export import get_export_response
 # BLOCK FOR MTURK HITS
-from django.conf import settings
 from otree.views.mturk import get_mturk_client
-from botocore.exceptions import NoCredentialsError, EndpointConnectionError
-import json
-from django.core.urlresolvers import reverse, reverse_lazy
-# import otree_tools.forms as forms
-from django.http import JsonResponse, HttpResponseRedirect
-from datetime import datetime, timedelta, timezone
-from dateutil import tz
-# END OF BLOCK
-
-# BLOCK FOR TESTING JSON THINGS
-
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-# from .forms import (UpdateExpirationForm)
-
-# END OF BLOCK
-
-from contextlib import contextmanager
 from otree_tools.models import EnterEvent, ExitEvent
-from django.db.models import ExpressionWrapper, F, DateTimeField, DurationField
 
-from django.db.models import Value, Count, Max, Min, Sum,OuterRef, Subquery
+from .export import export_wide
+
+
+# import otree_tools.forms as forms
+# END OF BLOCK
+# BLOCK FOR TESTING JSON THINGS
+# from .forms import (UpdateExpirationForm)
+# END OF BLOCK
 
 
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS

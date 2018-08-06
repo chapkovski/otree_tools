@@ -12,12 +12,9 @@ def get_seconds_per_page(player, page_name):
     return page_info.seconds_on_page
 
 
-from otree_tools.models import EnterEvent, ExitEvent
-from django.db.models import OuterRef, Subquery, ExpressionWrapper, F, DateTimeField, DurationField, IntegerField, \
-    FloatField
-from datetime import datetime, timedelta
-from django.db.models.functions import Cast
-from django.db.models import Value, Count, Max, Min, Sum
+from otree_tools.models import EnterEvent
+from django.db.models import ExpressionWrapper, F, DurationField
+from django.db.models import Count, Min, Sum
 
 
 def get_time_per_page(player, page_name):
