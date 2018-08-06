@@ -4,6 +4,9 @@ from datetime import datetime
 from otree_tools.models import EnterEvent, ExitEvent
 import json
 import time
+from django.contrib.contenttypes.models import ContentType
+from otree.models_concrete import ParticipantToPlayerLookup
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 class TimeTracker(JsonWebsocketConsumer):
@@ -21,35 +24,42 @@ class TimeTracker(JsonWebsocketConsumer):
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
         raw_time = raw_content['timestamp']
-        exit_time = datetime.fromtimestamp(raw_time / 1000)
-        # TODO: can other than exit events be sent to this channel as messages? Then we have to check for that
-        exit_type = int(raw_content['eventtype'])
-        # TODO: the right way of doing things is to move all event registration here from connect (and leave some pieces
-        #     in disconnected
-        latest_entry = self.get_unclosed_enter_event()
-        if latest_entry is not None:
-            latest_entry.exits.create(timestamp=exit_time,
-                                      exit_type=exit_type)
+        timestamp = datetime.fromtimestamp(raw_time / 1000)
+        eventtype = raw_content['eventtype']
+        if eventtype == 'enter':
+            participant = self.get_participant()
+            participant_lookup_item = participant.participanttoplayerlookup_set.get(
+                page_index=participant._index_in_pages)
+            app_name = participant_lookup_item.app_name
+            player_pk = participant_lookup_item.player_pk
+
+            player_content_type = ContentType.objects.get(app_label=app_name, model='player')
+            player = player_content_type.get_object_for_this_type(pk=player_pk)
+            EnterEvent.opened.close_all(participant, self.page_name, )
+
+            participant.enters.create(page_name=self.page_name,
+                                      timestamp=timestamp,
+                                      player=player,
+                                      app_name=app_name)
+        if eventtype == 'exit':
+            exit_type = int(raw_content['exittype'])
+            latest_entry = self.get_unclosed_enter_event()
+            if latest_entry is not None:
+                latest_entry.exits.create(timestamp=timestamp,
+                                          exit_type=exit_type)
 
     def get_participant(self):
         self.clean_kwargs()
         return Participant.objects.get(code__exact=self.participant_code)
 
     def connect(self, message, **kwargs):
-        participant = self.get_participant()
-        EnterEvent.opened.close_all(participant, self.page_name, )
-        # TODO: record actual passed time onopen, not datetime.now()
-        participant.enters.create(page_name=self.page_name,
-                                  timestamp=datetime.now())
+        print('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
-        print('DISCONNECTING)')
         participant = self.get_participant()
         latest_entry = self.get_unclosed_enter_event()
         if latest_entry is not None:
             latest_entry.exits.create(timestamp=datetime.now(),
                                       exit_type=2)
-            # TODO: can be potentially an issue if they already move on further....
-            print("CURPAGE!!!!! ", self.page_name)
 
             EnterEvent.opened.close_all(participant, self.page_name)

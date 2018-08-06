@@ -13,19 +13,24 @@ def get_seconds_per_page(player, page_name):
 
 
 from otree_tools.models import EnterEvent, ExitEvent
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, ExpressionWrapper, F, DateTimeField, DurationField, IntegerField, \
+    FloatField
 from datetime import datetime, timedelta
+from django.db.models.functions import Cast
+from django.db.models import Value, Count, Max, Min, Sum
 
 
 def get_time_per_page(player, page_name):
-    earliest = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
-    delta = timedelta(days=1)
+    tot_enter_events = EnterEvent.objects.filter(participant=player.participant,
+                                                 page_name=page_name
+                                                 ).annotate(num_exits=Count('exits')).filter(num_exits__gt=0)
+    if tot_enter_events.exists():
+        b = tot_enter_events.annotate(
+            early_exits=Min('exits__timestamp'),
+            timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
+                                       output_field=DurationField())
+        ).aggregate(sum_diff=Sum('timediff'))
 
-    a = EnterEvent.objects.filter(closed=True,
-                                  participant=player.participant,
-                                  page_name=page_name).annotate(
-        earliest_exit=Subquery(earliest.values('timestamp')[:1]),
-    ).values()
-    sum_diff = sum([i['earliest_exit'] - i['timestamp'] for i in a], timedelta())
+        sum_diff = b['sum_diff']
 
-    return sum_diff
+        return sum_diff

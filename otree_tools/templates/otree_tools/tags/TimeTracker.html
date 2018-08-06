@@ -2,16 +2,18 @@
 <h1>jopa</h1>
 <script>
     $(function () {
-        var unloadingwindowtime = new Date(),
+        var loadingwindowtime = new Date(),
+            unloadingwindowtime = new Date(),
             submittingformtime = new Date();
 
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
         var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}";
 
-        function sendingEvent(event_type, timestamp) {
+        function sendingEvent(event_type, timestamp, exittype=null) {
             var msg = JSON.stringify({
                 'eventtype': event_type,
                 'timestamp': timestamp,
+                'exittype': exittype,
             });
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify(msg));
@@ -21,19 +23,22 @@
 
         $(window).on('beforeunload', function () {
             unloadingwindowtime = new Date().getTime();
-            sendingEvent(1, unloadingwindowtime);
+            sendingEvent('exit', unloadingwindowtime, 1);
         });
         $('form#form').on('submit', function () {
             submittingformtime = new Date().getTime();
-            sendingEvent(0, submittingformtime);
+            sendingEvent('exit', submittingformtime, 0);
+
 
         });
         var socket = new ReconnectingWebSocket(ws_path);
         socket.onopen = function (event) {
             console.log('connected to oTree');
+            loadingwindowtime = new Date().getTime();
+            sendingEvent('enter', loadingwindowtime);
         };
         socket.onclose = function (event) {
-            console.log('discontnecting');
+            console.log('disconnecting');
         }
         socket.onmessage = function (event) {
             var obj = jQuery.parseJSON(event.data);

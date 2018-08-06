@@ -5,14 +5,13 @@ from otree.models import Session
 from django.shortcuts import render
 from django.views.generic import ListView
 
-
 # BLOCK FOR MTURK HITS
 from django.conf import settings
 from otree.views.mturk import get_mturk_client
 from botocore.exceptions import NoCredentialsError, EndpointConnectionError
 import json
 from django.core.urlresolvers import reverse, reverse_lazy
-import otree_tools.forms as forms
+# import otree_tools.forms as forms
 from django.http import JsonResponse, HttpResponseRedirect
 from datetime import datetime, timedelta, timezone
 from dateutil import tz
@@ -22,25 +21,42 @@ from dateutil import tz
 
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from .forms import (UpdateExpirationForm)
+# from .forms import (UpdateExpirationForm)
 
 # END OF BLOCK
 
 from contextlib import contextmanager
-from .models import EnterEvent, ExitEvent
+from otree_tools.models import EnterEvent, ExitEvent
+from django.db.models import ExpressionWrapper, F, DateTimeField, DurationField
+
+from django.db.models import Value, Count, Max, Min, Sum,OuterRef, Subquery
+
+
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
 class TimeStampList(ListView):
     template_name = 'otree_tools/all_timespent_list.html'
     url_name = 'time_spent_timestamps'
     url_pattern = r'^time_spent_per_page/$'
     display_name = 'Time spent per page'
+    context_object_name = 'timestamps'
+    def get_queryset(self):
+        earliest_exit= ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
+        subquery_earliest=Subquery(earliest_exit.values('pk')[:1])
+        tot_enter_events = EnterEvent.objects. \
+            annotate(num_exits=Count('exits')). \
+            filter(num_exits__gt=0). \
+            annotate(
+            early_exits=Min('exits__timestamp'),
+            early_exit_pk = subquery_earliest,
+            timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
+                                       output_field=DurationField())
+        )
+        # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
+        # string field instead
+        for i in tot_enter_events:
+            i.exittype=ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
+        return tot_enter_events
 
-    def get(self, request, *args, **kwargs):
-        ...
-
-
-class TimeStampList(vanilla.TemplateView):
-    ...
 
 # END OF TIME STAMPS BLOCK
 
@@ -143,190 +159,190 @@ class AssignmentListView(vanilla.TemplateView):
         else:
             context['mturk_errors'] = mturk.get_errors()
         return context
-
-
-class SendSomethingView(vanilla.FormView):
-    HITId = None
-    AssignmentId = None
-    WorkerId = None
-    Assignment = None
-
-    def dispatch(self, request, *args, **kwargs):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            self.assignment = client.get_assignment(AssignmentId=kwargs['AssignmentID'])['Assignment']
-            self.AssignmentId = self.assignment['AssignmentId']
-            self.WorkerId = self.assignment['WorkerId']
-            self.HITId = self.assignment['HITId']
-        else:
-            self.context['mturk_errors'] = mturk.get_errors()
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['assignment'] = self.assignment
-        return context
-
-    def get_success_url(self):
-        return reverse('assignments_list', kwargs={'HITId': self.HITId})
-
-
-class SendMessageView(SendSomethingView):
-    form_class = forms.SendMessageForm
-    template_name = 'otree_tools/send_message.html'
-
-    def form_valid(self, form):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            sending_message = client.notify_workers(
-                Subject=form.cleaned_data['subject'],
-                MessageText=form.cleaned_data['message_text'],
-                WorkerIds=[self.WorkerId, ]
-            )
-        return super().form_valid(form)
-
-
-class SendBonusView(SendSomethingView):
-    template_name = 'otree_tools/send_bonus.html'
-    form_class = forms.SendBonusForm
-
-    def get_form(self, data=None, files=None, **kwargs):
-        max_bon = 100
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.list_bonus_payments(
-                HITId=self.HITId,
-                MaxResults=100,
-            )
-            bs = response['BonusPayments']
-            today = datetime.utcnow().date()
-            start = datetime(today.year, today.month, today.day, tzinfo=tz.tzutc())
-            recent_bs = [float(i['BonusAmount']) for i in bs if i['GrantTime'] > start]
-            tot_bon = sum([i for i in recent_bs])
-            max_bon = max(0, 100 - tot_bon)
-
-        cls = self.get_form_class()
-        return cls(data=data, files=files, max_bonus=max_bon)
-
-    def form_valid(self, form):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.send_bonus(
-                WorkerId=self.WorkerId,
-                BonusAmount=str(form.cleaned_data['bonus_amount']),
-                AssignmentId=self.AssignmentId,
-                Reason=form.cleaned_data['reason'],
-            )
-        return super().form_valid(form)
-
-
-class DeleteHitView(vanilla.View):
-    def get(self, request, *args, **kwargs):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            cur_hit = check_if_deletable(client.get_hit(HITId=self.kwargs['HITId']).get('HIT'))
-            if cur_hit.get('Deletable'):
-                response = client.delete_hit(HITId=cur_hit['HITId'])
-
-        return HttpResponseRedirect(reverse_lazy('hits_list'))
-
-
-class UpdateExpirationView(vanilla.FormView):
-    back_to_HIT = None
-    form_class = UpdateExpirationForm
-    template_name = 'otree_tools/update_expiration.html'
-    HITId = None
-    HIT = None
-
-    def get_form(self, data=None, files=None, **kwargs):
-        cls = self.get_form_class()
-        return cls(data=data, files=files, initial={'expire_time': self.HIT['Expiration']})
-
-    def get_success_url(self):
-        if self.back_to_HIT:
-            return reverse('assignments_list', kwargs={'HITId': self.HITId})
-        else:
-            return reverse_lazy('hits_list')
-
-    def dispatch(self, request, *args, **kwargs):
-
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            self.HITId = kwargs['HITId']
-            self.HIT = client.get_hit(HITId=self.HITId).get('HIT')
-        else:
-            self.context['mturk_errors'] = mturk.get_errors()
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.update_expiration_for_hit(
-                HITId=self.HITId,
-                ExpireAt=0  # form.cleaned_data['expire_time']
-            )
-            response = client.update_expiration_for_hit(
-                HITId=self.HITId,
-                ExpireAt=form.cleaned_data['expire_time']
-            )
-        return super().form_valid(form)
-
-
-class ExpireHitView(vanilla.View):
-    back_to_HIT = None
-
-    def get(self, request, *args, **kwargs):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.update_expiration_for_hit(
-                HITId=self.kwargs['HITId'],
-                ExpireAt=0,
-            )
-        if self.back_to_HIT:
-            return HttpResponseRedirect(reverse('assignments_list', kwargs={'HITId': self.kwargs['HITId']}))
-        else:
-            return HttpResponseRedirect(reverse_lazy('hits_list'))
-
-
-class ApproveAssignmentView(vanilla.FormView):
-    form_class = forms.ApproveAssignmentForm
-    template_name = 'otree_tools/approve_assignment.html'
-    success_url = reverse_lazy('hits_list')
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.approve_assignment(
-                AssignmentId=self.kwargs['AssignmentID'],
-                RequesterFeedback=form.cleaned_data['message_text'],
-                OverrideRejection=True,
-            )
-        return super().form_valid(form)
-
-
-class RejectAssignmentView(vanilla.FormView):
-    form_class = forms.RejectAssignmentForm
-    template_name = 'otree_tools/reject_assignment.html'
-    success_url = reverse_lazy('hits_list')
-
-    def form_valid(self, form):
-        mturk = MturkClient()
-        client = mturk.client
-        if client is not None:
-            response = client.reject_assignment(
-                AssignmentId=self.kwargs['AssignmentID'],
-                RequesterFeedback=form.cleaned_data['message_text'],
-            )
-        return super().form_valid(form)
+#
+#
+# class SendSomethingView(vanilla.FormView):
+#     HITId = None
+#     AssignmentId = None
+#     WorkerId = None
+#     Assignment = None
+#
+#     def dispatch(self, request, *args, **kwargs):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             self.assignment = client.get_assignment(AssignmentId=kwargs['AssignmentID'])['Assignment']
+#             self.AssignmentId = self.assignment['AssignmentId']
+#             self.WorkerId = self.assignment['WorkerId']
+#             self.HITId = self.assignment['HITId']
+#         else:
+#             self.context['mturk_errors'] = mturk.get_errors()
+#         return super().dispatch(request, *args, **kwargs)
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['assignment'] = self.assignment
+#         return context
+#
+#     def get_success_url(self):
+#         return reverse('assignments_list', kwargs={'HITId': self.HITId})
+#
+#
+# class SendMessageView(SendSomethingView):
+#     form_class = forms.SendMessageForm
+#     template_name = 'otree_tools/send_message.html'
+#
+#     def form_valid(self, form):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             sending_message = client.notify_workers(
+#                 Subject=form.cleaned_data['subject'],
+#                 MessageText=form.cleaned_data['message_text'],
+#                 WorkerIds=[self.WorkerId, ]
+#             )
+#         return super().form_valid(form)
+#
+#
+# class SendBonusView(SendSomethingView):
+#     template_name = 'otree_tools/send_bonus.html'
+#     form_class = forms.SendBonusForm
+#
+#     def get_form(self, data=None, files=None, **kwargs):
+#         max_bon = 100
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.list_bonus_payments(
+#                 HITId=self.HITId,
+#                 MaxResults=100,
+#             )
+#             bs = response['BonusPayments']
+#             today = datetime.utcnow().date()
+#             start = datetime(today.year, today.month, today.day, tzinfo=tz.tzutc())
+#             recent_bs = [float(i['BonusAmount']) for i in bs if i['GrantTime'] > start]
+#             tot_bon = sum([i for i in recent_bs])
+#             max_bon = max(0, 100 - tot_bon)
+#
+#         cls = self.get_form_class()
+#         return cls(data=data, files=files, max_bonus=max_bon)
+#
+#     def form_valid(self, form):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.send_bonus(
+#                 WorkerId=self.WorkerId,
+#                 BonusAmount=str(form.cleaned_data['bonus_amount']),
+#                 AssignmentId=self.AssignmentId,
+#                 Reason=form.cleaned_data['reason'],
+#             )
+#         return super().form_valid(form)
+#
+#
+# class DeleteHitView(vanilla.View):
+#     def get(self, request, *args, **kwargs):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             cur_hit = check_if_deletable(client.get_hit(HITId=self.kwargs['HITId']).get('HIT'))
+#             if cur_hit.get('Deletable'):
+#                 response = client.delete_hit(HITId=cur_hit['HITId'])
+#
+#         return HttpResponseRedirect(reverse_lazy('hits_list'))
+#
+#
+# class UpdateExpirationView(vanilla.FormView):
+#     back_to_HIT = None
+#     form_class = UpdateExpirationForm
+#     template_name = 'otree_tools/update_expiration.html'
+#     HITId = None
+#     HIT = None
+#
+#     def get_form(self, data=None, files=None, **kwargs):
+#         cls = self.get_form_class()
+#         return cls(data=data, files=files, initial={'expire_time': self.HIT['Expiration']})
+#
+#     def get_success_url(self):
+#         if self.back_to_HIT:
+#             return reverse('assignments_list', kwargs={'HITId': self.HITId})
+#         else:
+#             return reverse_lazy('hits_list')
+#
+#     def dispatch(self, request, *args, **kwargs):
+#
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             self.HITId = kwargs['HITId']
+#             self.HIT = client.get_hit(HITId=self.HITId).get('HIT')
+#         else:
+#             self.context['mturk_errors'] = mturk.get_errors()
+#         return super().dispatch(request, *args, **kwargs)
+#
+#     def form_valid(self, form):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.update_expiration_for_hit(
+#                 HITId=self.HITId,
+#                 ExpireAt=0  # form.cleaned_data['expire_time']
+#             )
+#             response = client.update_expiration_for_hit(
+#                 HITId=self.HITId,
+#                 ExpireAt=form.cleaned_data['expire_time']
+#             )
+#         return super().form_valid(form)
+#
+#
+# class ExpireHitView(vanilla.View):
+#     back_to_HIT = None
+#
+#     def get(self, request, *args, **kwargs):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.update_expiration_for_hit(
+#                 HITId=self.kwargs['HITId'],
+#                 ExpireAt=0,
+#             )
+#         if self.back_to_HIT:
+#             return HttpResponseRedirect(reverse('assignments_list', kwargs={'HITId': self.kwargs['HITId']}))
+#         else:
+#             return HttpResponseRedirect(reverse_lazy('hits_list'))
+#
+#
+# class ApproveAssignmentView(vanilla.FormView):
+#     form_class = forms.ApproveAssignmentForm
+#     template_name = 'otree_tools/approve_assignment.html'
+#     success_url = reverse_lazy('hits_list')
+#
+#     def get(self, request, *args, **kwargs):
+#         return super().get(request, *args, **kwargs)
+#
+#     def form_valid(self, form):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.approve_assignment(
+#                 AssignmentId=self.kwargs['AssignmentID'],
+#                 RequesterFeedback=form.cleaned_data['message_text'],
+#                 OverrideRejection=True,
+#             )
+#         return super().form_valid(form)
+#
+#
+# class RejectAssignmentView(vanilla.FormView):
+#     form_class = forms.RejectAssignmentForm
+#     template_name = 'otree_tools/reject_assignment.html'
+#     success_url = reverse_lazy('hits_list')
+#
+#     def form_valid(self, form):
+#         mturk = MturkClient()
+#         client = mturk.client
+#         if client is not None:
+#             response = client.reject_assignment(
+#                 AssignmentId=self.kwargs['AssignmentID'],
+#                 RequesterFeedback=form.cleaned_data['message_text'],
+#             )
+#         return super().form_valid(form)

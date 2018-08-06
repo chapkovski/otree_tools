@@ -1,6 +1,8 @@
 from django.db import models
 from otree.models import Participant
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
 
@@ -31,7 +33,6 @@ EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnect
 # ...
 # PROFIT!!
 class OpenEnterEventManager(models.Manager):
-
     def get_queryset(self):
         return super().get_queryset().filter(closed=False)
 
@@ -50,9 +51,15 @@ class EnterEvent(models.Model):
     opened = OpenEnterEventManager()
     page_name = models.CharField(max_length=1000)
     participant = models.ForeignKey(to=Participant, related_name='enters')
+    app_name = models.CharField(max_length=1000)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    player_id = models.PositiveIntegerField()
+    player = GenericForeignKey('content_type', 'player_id')
+
     timestamp = models.DateTimeField()
+    # do we need closed? the disconnect method does it too late
     closed = models.BooleanField(default=False)
-    closed_at = models.DateTimeField(null=True)
+
     def __str__(self):
         return 'id: {}, Enter: {}; time: {}; closed: {}'.format(self.pk, self.page_name, self.timestamp, self.closed)
 

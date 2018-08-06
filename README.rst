@@ -35,3 +35,4 @@ Installation:
 0.0.8: Temporarily removing static jquery-ui files
 0.0.9: ListField gets options to set initial/default values
 0.0.10: ListField gets an option  `max_choices`
+0.0.11: New tag `{% tracking_time %}` is added that allows to measure precisely time spent per page
