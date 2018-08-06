@@ -37,7 +37,7 @@ class TimeStampList(ListView):
     template_name = 'otree_tools/all_timespent_list.html'
     url_name = 'time_spent_timestamps'
     url_pattern = r'^time_spent_per_page/$'
-    display_name = 'Time spent per page'
+    display_name = 'Time spent per page [otree-tools]'
     context_object_name = 'timestamps'
     def get_queryset(self):
         earliest_exit= ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
