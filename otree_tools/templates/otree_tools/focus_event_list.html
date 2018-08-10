@@ -1,11 +1,11 @@
 {% extends "otree/BaseAdmin.html" %}
 
 {% block title %}
-Information about time tracking (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverbatim %}</code> tag)
+Information about focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %}</code>  tag)
 {% endblock %}
 
 {% block content %}
-{%  if timestamps %}
+{%  if focusevents %}
 <table class="table table-hover table-striped table-resonsive">
     <thead>
     <th>Session code</th>
@@ -13,34 +13,28 @@ Information about time tracking (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;
     <th>App name</th>
     <th>Round number</th>
     <th>Page name</th>
-    <th>Entrance timestamp</th>
-    <th>Exit timestamp</th>
-    <th>Duration</th>
-    <th>Exit type</th>
+    <th>Timestamp</th>
+    <th>Event type</th>
     </thead>
     <tbody>
-    {% for s in timestamps %}
+    {% for s in focusevents %}
     <tr>
 
         <td>{{ s.participant.session.code}}</td>
         <td>{{ s.participant.code}}</td>
         <td>{{ s.app_name}}</td>
         <td>{{ s.player.round_number}}</td>
-
         <td>{{ s.page_name }}</td>
         <td>{{ s.timestamp|date:'Y-m-d H:i:s.u'}}</td>
-        <td>{{ s.early_exits|date:'Y-m-d H:i:s.u'}}</td>
-        <td>{{ s.timediff}}</td>
-        <td>{{ s.exittype}}</td>
-
+        <td>{{ s.event_type}}</td>
 
     </tr>
     {% endfor %}
     </tbody>
 </table>
 {% else %}
-No information about time tracking is available. If you want to track time spent per page, insert
-    <code>{% verbatim %} {%&nbsp;tracking_time&nbsp;%} {% endverbatim %}</code> to a corresponding template.
+    No information about focus events is available. If you want to track whether and when a user leaves the page, insert
+    <code>{% verbatim %} {%&nbsp;tracking_focus&nbsp;%} {% endverbatim %}</code> to a corresponding template.
 {% endif %}
 {% endblock %}
 

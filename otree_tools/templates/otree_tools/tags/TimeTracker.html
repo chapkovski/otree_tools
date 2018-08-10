@@ -1,5 +1,5 @@
 {% load static otree %}
-<h1>jopa</h1>
+
 <script>
     $(function () {
         var loadingwindowtime = new Date(),
@@ -37,13 +37,7 @@
             loadingwindowtime = new Date().getTime();
             sendingEvent('enter', loadingwindowtime);
         };
-        socket.onclose = function (event) {
-            console.log('disconnecting');
-        }
-        socket.onmessage = function (event) {
-            var obj = jQuery.parseJSON(event.data);
-            console.log(obj);
-        };
+
     })
     ;
 </script>

@@ -1,0 +1,42 @@
+{% load static  %}
+
+<script>
+    $(function () {
+
+
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}";
+        var socket = new ReconnectingWebSocket(ws_path);
+
+        function sendingEvent(event_type) {
+            var msg = JSON.stringify({
+                'eventtype': event_type,
+                'timestamp': new Date().getTime(),
+            });
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(msg));
+            }
+            ;
+        };
+
+        document.addEventListener("visibilitychange", function () {
+            var vis_status = document.hidden ? 'off' : 'on';
+            sendingEvent("Visibility: " + vis_status);
+
+        })
+
+
+        window.addEventListener('focus', function () {
+            sendingEvent("Focus: on");
+
+        });
+
+        window.addEventListener('blur', function () {
+            sendingEvent("Focus: off");
+        });
+
+
+    })
+    ;
+</script>
+

@@ -41,22 +41,27 @@ class OpenEnterEventManager(models.Manager):
         q.update(closed=True)
 
 
-# TODO: move ListField as a separate ModelField for storing lists
-class EnterEvent(models.Model):
+class GeneralEvent(models.Model):
     class Meta:
         get_latest_by = 'timestamp'
-        base_manager_name = 'objects'
+        abstract = True
 
-    objects = models.Manager()
-    opened = OpenEnterEventManager()
     page_name = models.CharField(max_length=1000)
-    participant = models.ForeignKey(to=Participant, related_name='enters')
+    participant = models.ForeignKey(to=Participant, related_name="%(app_label)s_%(class)s_events")
     app_name = models.CharField(max_length=1000)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('content_type', 'player_id')
-
     timestamp = models.DateTimeField()
+
+
+
+class EnterEvent(GeneralEvent):
+    class Meta(GeneralEvent.Meta):
+        base_manager_name = 'objects'
+
+    objects = models.Manager()
+    opened = OpenEnterEventManager()
     # do we need closed? the disconnect method does it too late
     closed = models.BooleanField(default=False)
 
@@ -77,3 +82,7 @@ class ExitEvent(models.Model):
                                                                           self.timestamp,
                                                                           self.enter_event.timestamp,
                                                                           self.get_exit_type_display())
+
+
+class FocusEvent(GeneralEvent):
+    event_type = models.CharField(max_length=1000)

@@ -8,7 +8,7 @@ from otree.models import Session
 from otree.views.export import get_export_response
 # BLOCK FOR MTURK HITS
 from otree.views.mturk import get_mturk_client
-from otree_tools.models import EnterEvent, ExitEvent
+from otree_tools.models import EnterEvent, ExitEvent, FocusEvent
 
 from .export import export_wide
 
@@ -21,7 +21,7 @@ from .export import export_wide
 
 
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
-class TimeStampList(ListView):
+class EnterExitEventList(ListView):
     template_name = 'otree_tools/all_timespent_list.html'
     url_name = 'time_spent_timestamps'
     url_pattern = r'^time_spent_per_page/$'
@@ -45,7 +45,13 @@ class TimeStampList(ListView):
             i.exittype=ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
         return tot_enter_events
 
-
+class FocusEventList(ListView):
+    template_name = 'otree_tools/focus_event_list.html'
+    url_name = 'focus_events'
+    url_pattern = r'^focus_events/$'
+    display_name = 'Focus/unfocus events [otree-tools]'
+    context_object_name = 'focusevents'
+    queryset = FocusEvent.objects.all()
 # END OF TIME STAMPS BLOCK
 
 
