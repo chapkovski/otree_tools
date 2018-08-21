@@ -18,6 +18,12 @@
             }
             ;
         };
+        socket.onopen = function (event) {
+            console.log('connected to oTree');
+            var vis_status = document.hidden ? 'off' : 'on';
+            sendingEvent("Visibility: " + vis_status);
+
+        };
 
         document.addEventListener("visibilitychange", function () {
             var vis_status = document.hidden ? 'off' : 'on';
