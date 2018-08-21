@@ -37,3 +37,4 @@ Installation:
 0.0.10: ListField gets an option  `max_choices`
 0.0.11: New tag `{% tracking_time %}` is added that allows to measure precisely time spent per page
 0.0.12: `ListField` renamed to `MultipleChoiceModelField`. `ListField` becomes a general field to store lists
+0.0.13: `{% tracking_focus}` tag - to track when/if user switches to another tab while staying on the page
