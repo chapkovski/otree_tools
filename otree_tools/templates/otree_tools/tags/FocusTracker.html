@@ -1,17 +1,23 @@
 {% load static  %}
 
 <script>
+    var initial_state_for_msg, initial_state_timestamp;
+    document.addEventListener("DOMContentLoaded", function () {
+        initial_state_for_msg = "Visibility: " + document.visibilityState;
+        initial_state_timestamp = new Date().getTime();
+    });
+
     $(function () {
 
 
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}";
+        var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
         var socket = new ReconnectingWebSocket(ws_path);
 
-        function sendingEvent(event_type) {
+        function sendingEvent(event_type, timestamp) {
             var msg = JSON.stringify({
                 'eventtype': event_type,
-                'timestamp': new Date().getTime(),
+                'timestamp': timestamp,
             });
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify(msg));
@@ -20,25 +26,25 @@
         };
         socket.onopen = function (event) {
             console.log('connected to oTree');
-            var vis_status = document.hidden ? 'off' : 'on';
-            sendingEvent("Visibility: " + vis_status);
+
+            sendingEvent(initial_state_for_msg, initial_state_timestamp);
 
         };
 
         document.addEventListener("visibilitychange", function () {
             var vis_status = document.hidden ? 'off' : 'on';
-            sendingEvent("Visibility: " + vis_status);
+            sendingEvent("Visibility: " + vis_status, new Date().getTime());
 
         })
 
 
         window.addEventListener('focus', function () {
-            sendingEvent("Focus: on");
+            sendingEvent("Focus: on", new Date().getTime());
 
         });
 
         window.addEventListener('blur', function () {
-            sendingEvent("Focus: off");
+            sendingEvent("Focus: off", new Date().getTime());
         });
 
 

@@ -39,3 +39,4 @@ Installation:
 0.0.12: `ListField` renamed to `MultipleChoiceModelField`. `ListField` becomes a general field to store lists
 0.0.13: `{% tracking_focus}` tag - to track when/if user switches to another tab while staying on the page
 0.0.14: Fixing issue with `{% tracking_focus}` tag - initial visibility event is registered now
+0.0.15: Minor fixes with trackers

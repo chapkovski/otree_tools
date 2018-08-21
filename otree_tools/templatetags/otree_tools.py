@@ -13,6 +13,7 @@ tracking_time_code, tracking_focus_code ='xBl4fTBP8hAsg61o1gJa','Q4YviMPgcVUjbbm
 
 
 def universal_tracker(context, tagname):
+    context['page_index'] = context['view']._index_in_pages
     context['page_name'] = context['view'].__class__.__name__
     code =globals()['{}_code'.format(tagname)]
     if code in context:
@@ -28,6 +29,7 @@ def tracking_time(context, *args, **kwargs):
 
 @register.inclusion_tag('otree_tools/tags/FocusTracker.html', takes_context=True, name='tracking_focus')
 def tracking_focus_func(context, *args, **kwargs):
+
     return universal_tracker(context, 'tracking_focus')
 
 
