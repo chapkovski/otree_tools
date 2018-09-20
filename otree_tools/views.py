@@ -79,8 +79,11 @@ class UniversalEncoder(json.JSONEncoder):
         try:
             return json.JSONEncoder.default(self, obj)
         except TypeError:
-            print('failed to convert:: ', str(obj))
-            return str(obj)
+            try:
+                return str(obj)
+            # the last resort - if built-in __str__ of the object causes an error we fail silently
+            except:
+                return ''
 
 
 class PVarsMixin(object):

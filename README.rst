@@ -40,3 +40,4 @@ Installation:
 0.0.13: `{% tracking_focus}` tag - to track when/if user switches to another tab while staying on the page
 0.0.14: Fixing issue with `{% tracking_focus}` tag - initial visibility event is registered now
 0.0.15: Minor fixes with trackers
+0.1.0: Export of participant.vars is added
