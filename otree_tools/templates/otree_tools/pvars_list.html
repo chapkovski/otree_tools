@@ -1,0 +1,56 @@
+{% extends "otree/BaseAdmin.html" %}
+
+{% block title %}
+<code>participant.vars</code> data for the session <code>{{session.code}}</code>
+<a class="btn btn-lg btn-success mx-3" role="button" href="{% url 'pvars_csv_export'  pk=session.pk  %}">Export as CSV</a>
+{% endblock %}
+
+{% block content %}
+
+
+{%  if pvars %}
+<table class="table table-hover table-striped" id="pvarstable">
+    <thead>
+        {% for head in heads %}
+            <th>{{head}}</th>
+        {%endfor%}
+
+    </thead>
+    <tbody>
+    {% for p in pvars %}
+    <tr>
+        {% for i in p %}
+        <td>{{ i }}</td>
+        {% endfor %}
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+No data available.
+{% endif %}
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+<style>
+    .red {
+        color: red
+    }
+
+    .green {
+        color: green
+    }
+</style>
+{% endblock %}
+{% block internal_scripts %}
+{{ block.super }}
+
+<script>
+    $(function() {
+        var $div = $('#pvarstable').closest('div[class="container"]');
+        $div.removeClass('container').addClass('container-fluid').removeAttr('style');
+    })
+</script>
+{% endblock %}

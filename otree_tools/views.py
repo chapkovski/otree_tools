@@ -3,15 +3,17 @@ from botocore.exceptions import NoCredentialsError, EndpointConnectionError
 from django.db.models import Count, Min, OuterRef, Subquery
 from django.db.models import ExpressionWrapper, F, DurationField
 from django.shortcuts import render
-from django.views.generic import ListView
-from otree.models import Session
+from django.views.generic import ListView, TemplateView
+from otree.models import Session, Participant
 from otree.views.export import get_export_response
 # BLOCK FOR MTURK HITS
 from otree.views.mturk import get_mturk_client
 from otree_tools.models import EnterEvent, ExitEvent, FocusEvent
-
+import json
+from django.http import HttpResponse
 from .export import export_wide
-
+from django.template import loader
+import csv
 
 # import otree_tools.forms as forms
 # END OF BLOCK
@@ -27,23 +29,25 @@ class EnterExitEventList(ListView):
     url_pattern = r'^time_spent_per_page/$'
     display_name = 'Time spent per page [otree-tools]'
     context_object_name = 'timestamps'
+
     def get_queryset(self):
-        earliest_exit= ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
-        subquery_earliest=Subquery(earliest_exit.values('pk')[:1])
+        earliest_exit = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
+        subquery_earliest = Subquery(earliest_exit.values('pk')[:1])
         tot_enter_events = EnterEvent.objects. \
             annotate(num_exits=Count('exits')). \
             filter(num_exits__gt=0). \
             annotate(
             early_exits=Min('exits__timestamp'),
-            early_exit_pk = subquery_earliest,
+            early_exit_pk=subquery_earliest,
             timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
                                        output_field=DurationField())
         )
         # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
         # string field instead
         for i in tot_enter_events:
-            i.exittype=ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
+            i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
         return tot_enter_events
+
 
 class FocusEventList(ListView):
     template_name = 'otree_tools/focus_event_list.html'
@@ -52,8 +56,93 @@ class FocusEventList(ListView):
     display_name = 'Focus/unfocus events [otree-tools]'
     context_object_name = 'focusevents'
     queryset = FocusEvent.objects.all()
+
+
 # END OF TIME STAMPS BLOCK
 
+# Block dealing with exporting participant vars #
+
+
+class PVarsSessionsList(ListView):
+    template_name = 'otree_tools/pvar_session_list.html'
+    url_name = 'sessions_pvar_export'
+    url_pattern = r'^sessions_pvar_export/$'
+    display_name = 'Exporting Participant Vars [otree-tools]'
+    model = Session
+    context_object_name = 'sessions'
+
+
+class UniversalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (set, range)):
+            return list(obj)
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except TypeError:
+            print('failed to convert:: ', str(obj))
+            return str(obj)
+
+
+class PVarsMixin(object):
+    def get_session(self):
+        return Session.objects.get(pk=self.kwargs.get('pk'))
+
+    def get_queryset(self):
+        headers_to_add = ['session.code', 'player.code']
+        session = self.get_session()
+        data = Participant.objects.filter(session=session).values('vars', 'code', 'session__code')
+        # todo: sort the headers
+        keys = sorted(list(set().union(*(d['vars'].keys() for d in data))), key=lambda s: s.lower())
+        self.heads = headers_to_add + keys
+        q = list()
+        for i in data:
+            dict_to_row = json.loads(json.dumps(i['vars'], cls=UniversalEncoder))
+            row = [i['session__code'], i['code']] + [dict_to_row.get(key, '') for key in keys]
+            q.append(row)
+
+        return q
+
+
+class ListPVarsView(PVarsMixin, ListView):
+    template_name = 'otree_tools/pvars_list.html'
+    url_name = 'pvars_list'
+    url_pattern = r'^session/(?P<pk>[a-zA-Z0-9_-]+)/pvars/$'
+    model = Participant
+    context_object_name = 'pvars'
+
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        c['session'] = self.get_session()
+        c['heads'] = self.heads
+        return c
+
+
+class PVarsCSVExport(PVarsMixin, TemplateView):
+
+    url_name = 'pvars_csv_export'
+    url_pattern = r'^session/(?P<pk>[a-zA-Z0-9_-]+)/pvars_csv_export/$'
+    response_class = HttpResponse
+    content_type = 'text/csv'
+
+
+
+    def get(self, request, *args, **kwargs):
+        response = HttpResponse(content_type='text/csv')
+        session_code = self.get_session().code
+        filename = '{}_participant_vars.csv'.format(session_code)
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+
+        pvars = self.get_queryset()
+        writer = csv.writer(response)
+        writer.writerow(self.heads)
+
+        for p in pvars:
+            writer.writerow(p)
+
+        return response
+
+
+# END OF Block dealing with exporting participant vars #
 
 
 def check_if_deletable(h):
@@ -153,6 +242,7 @@ class AssignmentListView(vanilla.TemplateView):
         else:
             context['mturk_errors'] = mturk.get_errors()
         return context
+
 #
 #
 # class SendSomethingView(vanilla.FormView):

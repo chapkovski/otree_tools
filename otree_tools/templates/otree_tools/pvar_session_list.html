@@ -1,0 +1,54 @@
+{% extends "otree/BaseAdmin.html" %}
+
+{% block title %}
+Export <code>participant.vars</code> data from individual sessions
+{% endblock %}
+
+{% block content %}
+{%  if sessions %}
+<table class="table table-hover table-striped table-resonsive">
+    <thead>
+    <th>Session code</th>
+    <th>Config name</th>
+    <th>Number of participants</th>
+    <th>Demo</th>
+    <th>For mTurk</th>
+    <th>Export</th>
+
+    </thead>
+    <tbody>
+    {% for s in sessions %}
+    <tr>
+        <td><a href="{% url 'pvars_list'  pk=s.pk  %}">{{ s.code }}</a></td>
+        <td>{{ s.config.display_name }}</td>
+        <td>{{ s.num_participants }}</td>
+        <td>
+            {{ s.is_demo|yesno:'Yes,No' }}
+        </td>
+        <td>
+            {{ s.is_for_mturk|yesno:'Yes,No' }}
+        </td>
+        <td><a href="{% url 'pvars_csv_export'  pk=s.pk  %}">.CSV</a></td>
+
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+No sessions have taken place yet.
+{% endif %}
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+<style>
+    .red {
+        color: red
+    }
+
+    .green {
+        color: green
+    }
+</style>
+{% endblock %}
