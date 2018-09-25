@@ -4,7 +4,7 @@ from django.core import checks
 from otree_tools.forms.fields import OtherFormField, MultiSelectFormField
 from otree.widgets import CheckboxSelectMultiple
 from otree.common_internal import expand_choice_tuples
-
+from otree_tools.radiogrid import RadioGridField
 
 class OtherModelField(models.CharField):
     other_value = None

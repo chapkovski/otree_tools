@@ -41,3 +41,4 @@ Installation:
 0.0.14: Fixing issue with `{% tracking_focus}` tag - initial visibility event is registered now
 0.0.15: Minor fixes with trackers
 0.1.0: Export of participant.vars is added
+0.1.1: Hosting of Anton Shurashov radiogrid widget (https://github.com/Sinkler/django-radiogrid)
