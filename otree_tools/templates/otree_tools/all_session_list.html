@@ -7,14 +7,30 @@ Export data from sessions
 {% block content %}
 {%  if sessions %}
 <table class="table table-hover table-striped table-resonsive">
+    <colgroup>
+        <col span="3">
+        <col span="3" class="info">
+        <col span="2" class="success">
+    </colgroup>
     <thead>
-    <th>Session code</th>
-    <th>Config name</th>
-    <th>Number of participants</th>
-    <th>Demo</th>
-    <th>For mTurk</th>
-    <th></th>
-    <th></th>
+    <tr>
+        <th scope="col" style="text-success">Session code</th>
+        <th>Config name</th>
+        <th>N. participants</th>
+        <th colspan="3">Download</th>
+
+        <th colspan="2">Participant.vars</th>
+    </tr>
+    <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>.xls</th>
+        <th>.csv</th>
+        <th>.json</th>
+        <th>view</th>
+        <th>.csv</th>
+    </tr>
     </thead>
     <tbody>
     {% for s in sessions %}
@@ -22,24 +38,11 @@ Export data from sessions
         <td>{{ s.code }}</td>
         <td>{{ s.config.display_name }}</td>
         <td>{{ s.num_participants }}</td>
-        <td>
-            {% if s.is_demo %}
-            <span class="glyphicon glyphicon-ok green" aria-hidden="true"></span>
-            {% else %}
-            <span class="glyphicon glyphicon-remove red" aria-hidden="true"></span>
-            {% endif %}
-        </td>
-        <td>
-            {% if s.is_for_mturk %}
-            <span class="glyphicon glyphicon-ok green" aria-hidden="true"></span>
-            {% else %}
-            <span class="glyphicon glyphicon-remove red" aria-hidden="true"></span>
-            {% endif %}
-
-        </td>
         <td><a href="{% url 'session_data'  session_code=s.code filetype='xlsx' %}?xlsx=1">xls</a></td>
         <td><a href="{% url 'session_data'  session_code=s.code filetype='csv' %}">csv</a></td>
-
+        <td></td>
+        <td></td>
+        <td></td>
 
     </tr>
     {% endfor %}
@@ -59,6 +62,22 @@ No sessions have taken place yet.
 
     .green {
         color: green
+    }
+
+    colgroup col.success {
+        background-color: #dff0d8;
+    }
+
+    colgroup col.error {
+        background-color: #f2dede;
+    }
+
+    colgroup col.warning {
+        background-color: #fcf8e3;
+    }
+
+    colgroup col.info {
+        background-color: #d9edf7;
     }
 </style>
 {% endblock %}
