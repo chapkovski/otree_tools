@@ -74,7 +74,6 @@ else:
 
         def get_context(self, name, value, attrs):
             context = super(RadioGridWidget, self).get_context(name, value, attrs)
-            print('CONTEXT', context)
             widgets = context['widget']['subwidgets']
             return {
                 'rows': [(v[1], widgets[i]) for i, v in enumerate(self.rows)],

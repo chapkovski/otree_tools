@@ -1,0 +1,66 @@
+{% extends "otree/BaseAdmin.html" %}
+
+{% block title %}
+    Export data from sessions
+{% endblock %}
+
+{% block content %}
+
+    {% if sessions %}
+
+        <table class="table table-hover table-striped table-resonsive">
+            <thead>
+            <th>Session code</th>
+            <th>Config name</th>
+            <th>Number of participants</th>
+            <th>Demo</th>
+            <th>For mTurk</th>
+
+            <th colspan="2">JSON</th>
+            </thead>
+            <tbody>
+            {% for s in sessions %}
+                <tr>
+                    <td>{{ s.code }}</td>
+                    <td>{{ s.config.display_name }}</td>
+                    <td>{{ s.num_participants }}</td>
+                    <td>
+                        <strong>{{ s.is_demo|yesno:'Yes, No' }}</strong>
+
+                    </td>
+                    <td>
+                        <strong>{{ s.is_for_mturk|yesno:'Yes, No' }}</strong>
+
+
+                    </td>
+
+                    <td>
+                        <a href="" class="json_download" data-session="{{ s.code }}" id="link_{{ s.code }}">Download</a>
+                        <div class="progress download_progress" id='progress_{{ s.code }}' >
+                            <div class="progress-bar progress-bar-striped progress-bar-animated "
+                                  role="progressbar"
+                                 aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                        </div>
+                    </td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        No sessions have taken place yet.
+    {% endif %}
+{% endblock %}
+
+{% block internal_scripts %}
+    {{ block.super }}
+    {% include 'includes/json_loader.html' %}
+{% endblock %}
+{% block internal_styles %}
+    {{ block.super }}
+    <style>
+    .download_progress{
+        display: none;
+    }
+    </style>
+{% endblock %}

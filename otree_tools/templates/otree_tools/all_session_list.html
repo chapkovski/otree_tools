@@ -17,20 +17,11 @@ Export data from sessions
         <th scope="col" style="text-success">Session code</th>
         <th>Config name</th>
         <th>N. participants</th>
-        <th colspan="3">Download</th>
+        <th colspan="3" class="text-center">Download</th>
 
-        <th colspan="2">Participant.vars</th>
+        <th colspan="2" class="text-center">Participant.vars</th>
     </tr>
-    <tr>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th>.xls</th>
-        <th>.csv</th>
-        <th>.json</th>
-        <th>view</th>
-        <th>.csv</th>
-    </tr>
+
     </thead>
     <tbody>
     {% for s in sessions %}
@@ -38,11 +29,12 @@ Export data from sessions
         <td>{{ s.code }}</td>
         <td>{{ s.config.display_name }}</td>
         <td>{{ s.num_participants }}</td>
-        <td><a href="{% url 'session_data'  session_code=s.code filetype='xlsx' %}?xlsx=1">xls</a></td>
-        <td><a href="{% url 'session_data'  session_code=s.code filetype='csv' %}">csv</a></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td class="text-center"><a href="{% url 'session_data'  session_code=s.code filetype='xlsx' %}?xlsx=1">.xlsx</a>
+        </td>
+        <td><a href="{% url 'session_data'  session_code=s.code filetype='csv' %}">.csv</a></td>
+        <td><a href="{% url 'download_json'  session_code=s.code  %}">.json</a></td>
+        <td class="text-center"><a href="{% url 'pvars_list'  pk=s.pk  %}">View</a></td>
+        <td class="text-center"><a href="{% url 'pvars_csv_export'  pk=s.pk  %}">.csv</a></td>
 
     </tr>
     {% endfor %}
@@ -79,5 +71,10 @@ No sessions have taken place yet.
     colgroup col.info {
         background-color: #d9edf7;
     }
+
 </style>
+{% endblock %}
+
+{% block internal_scripts %}
+{{ block.super }}
 {% endblock %}
