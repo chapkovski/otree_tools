@@ -42,4 +42,5 @@ Installation:
 0.0.15: Minor fixes with trackers
 0.1.0: Export of participant.vars is added
 0.1.1: Hosting of Anton Shurashov radiogrid widget (https://github.com/Sinkler/django-radiogrid)
-0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions
+0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions; export of focus and
+enter/exit trackers as CSV

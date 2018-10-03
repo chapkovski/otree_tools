@@ -1,7 +1,11 @@
 {% extends "otree/BaseAdmin.html" %}
 
 {% block title %}
-Information about focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %}</code>  tag)
+Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %}</code>  tag)
+<a
+        class="btn btn-lg btn-success mx-3" role="button" href="{% url 'focusevent_csv_export'    %}">Export as
+    CSV</a>
+
 {% endblock %}
 
 {% block content %}

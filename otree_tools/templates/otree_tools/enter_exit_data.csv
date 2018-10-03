@@ -1,0 +1,4 @@
+"Session code","Participant code","App name","Round number","Page name","Entrance timestamp","Exit timestamp","Duration","Exit type"
+{% for s in timestamps%}
+	{{ s.participant.session.code}},{{ s.participant.code}},{{ s.app_name}},{{ s.player.round_number}},{{ s.page_name }},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.early_exits|date:'Y-m-d H:i:s.u'}},{{ s.timediff}},{{ s.exittype}}
+{% endfor %}

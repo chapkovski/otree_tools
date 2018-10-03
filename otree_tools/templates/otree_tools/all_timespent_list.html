@@ -1,7 +1,10 @@
 {% extends "otree/BaseAdmin.html" %}
 
 {% block title %}
-Information about time tracking (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverbatim %}</code> tag)
+Time tracking info (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverbatim %}</code> tag)
+<a
+        class="btn btn-lg btn-success mx-3" role="button" href="{% url 'enterexit_csv_export'    %}">Export as
+    CSV</a>
 {% endblock %}
 
 {% block content %}
@@ -40,7 +43,7 @@ Information about time tracking (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;
 </table>
 {% else %}
 No information about time tracking is available. If you want to track time spent per page, insert
-    <code>{% verbatim %} {%&nbsp;tracking_time&nbsp;%} {% endverbatim %}</code> to a corresponding template.
+<code>{% verbatim %} {%&nbsp;tracking_time&nbsp;%} {% endverbatim %}</code> to a corresponding template.
 {% endif %}
 {% endblock %}
 

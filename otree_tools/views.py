@@ -14,6 +14,8 @@ from django.http import HttpResponse
 from .export import export_wide
 from django.template import loader
 import csv
+from datetime import timedelta
+
 
 # import otree_tools.forms as forms
 # END OF BLOCK
@@ -23,13 +25,7 @@ import csv
 
 
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
-class EnterExitEventList(ListView):
-    template_name = 'otree_tools/all_timespent_list.html'
-    url_name = 'time_spent_timestamps'
-    url_pattern = r'^time_spent_per_page/$'
-    display_name = 'Time spent per page [otree-tools]'
-    context_object_name = 'timestamps'
-
+class EnterExitMixin:
     def get_queryset(self):
         earliest_exit = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
         subquery_earliest = Subquery(earliest_exit.values('pk')[:1])
@@ -43,10 +39,44 @@ class EnterExitEventList(ListView):
                                        output_field=DurationField())
         )
         # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
-        # string field instead
+
         for i in tot_enter_events:
+            # for some weird reasons some random time diffs are not calculated at all (like None).
+            if i.timediff is None:
+                i.timediff = i.early_exits - i.timestamp
+
             i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
         return tot_enter_events
+
+
+class EnterExitEventList(EnterExitMixin, ListView):
+    template_name = 'otree_tools/all_timespent_list.html'
+    url_name = 'time_spent_timestamps'
+    url_pattern = r'^time_spent_per_page/$'
+    display_name = 'Time spent per page [otree-tools]'
+    context_object_name = 'timestamps'
+
+
+class UniEventCSVExport(TemplateView):
+    def get(self, request, *args, **kwargs):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)
+        timestamps = self.get_queryset()
+        t = loader.get_template(self.template_name)
+        c = {
+            'timestamps': timestamps,
+        }
+        response.write(t.render(c))
+        return response
+
+
+class EnterExitCSVExport(EnterExitMixin, UniEventCSVExport):
+    url_name = 'enterexit_csv_export'
+    url_pattern = r'^enterexit_csv_export/$'
+    response_class = HttpResponse
+    content_type = 'text/csv'
+    filename = 'enter_exit_data.csv'
+    template_name = 'otree_tools/{}'.format(filename)
 
 
 class FocusEventList(ListView):
@@ -56,6 +86,16 @@ class FocusEventList(ListView):
     display_name = 'Focus/unfocus events [otree-tools]'
     context_object_name = 'focusevents'
     queryset = FocusEvent.objects.all()
+
+
+class FocusEventCSVExport(UniEventCSVExport, ListView):
+    queryset = FocusEvent.objects.all()
+    url_name = 'focusevent_csv_export'
+    url_pattern = r'^focusevent_csv_export/$'
+    response_class = HttpResponse
+    content_type = 'text/csv'
+    filename = 'focus_data.csv'
+    template_name = 'otree_tools/{}'.format(filename)
 
 
 # END OF TIME STAMPS BLOCK
@@ -121,13 +161,10 @@ class ListPVarsView(PVarsMixin, ListView):
 
 
 class PVarsCSVExport(PVarsMixin, TemplateView):
-
     url_name = 'pvars_csv_export'
     url_pattern = r'^session/(?P<pk>[a-zA-Z0-9_-]+)/pvars_csv_export/$'
     response_class = HttpResponse
     content_type = 'text/csv'
-
-
 
     def get(self, request, *args, **kwargs):
         response = HttpResponse(content_type='text/csv')
