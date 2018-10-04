@@ -45,3 +45,4 @@ Installation:
 0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions; export of focus and
 enter/exit trackers as CSV
 0.2.2: fixin issue with restframework
+0.2.3: fixin issue with time_tracking tag

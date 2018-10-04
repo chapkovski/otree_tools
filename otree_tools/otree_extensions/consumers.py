@@ -46,7 +46,8 @@ class TimeTracker(GeneralTracker):
     url_pattern = (r'^/timetracker/' + GeneralTracker.tracker_url_kwargs)
 
     def get_unclosed_enter_event(self):
-        o = EnterEvent.opened.all()
+        p = self.get_participant()
+        o = EnterEvent.opened.filter(participant=p)
         if o.exists():
             return o.latest()
 
