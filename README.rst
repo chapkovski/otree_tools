@@ -44,3 +44,4 @@ Installation:
 0.1.1: Hosting of Anton Shurashov radiogrid widget (https://github.com/Sinkler/django-radiogrid)
 0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions; export of focus and
 enter/exit trackers as CSV
+0.2.2: fixin issue with restframework

@@ -8,6 +8,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+
 def read_version():
     with open('otree_tools/__init__.py', 'r') as f:
         version_match = re.search(
@@ -16,6 +17,7 @@ def read_version():
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
+
 
 setup(
     name='otree_tools',
@@ -45,5 +47,6 @@ setup(
         'otree>=2.1.9',
         'boto3>=1.4.4',
         'django-datetime-widget>=0.9.3',
+        'djangorestframework>=3.4.6',
     ]
 )
