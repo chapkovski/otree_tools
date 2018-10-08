@@ -15,4 +15,6 @@ urlpatterns = [url(v.ListPVarsView.url_pattern, v.ListPVarsView.as_view(),
                    name='session_data'),
                url(r'^download_json/(?P<session_code>\w+)$', DownloadJson.as_view(),
                    name='download_json'),
+               url(v.StreamingFocusCSV.url_pattern, v.StreamingFocusCSV.as_view(),
+                   name=v.StreamingFocusCSV.url_name),
                ]

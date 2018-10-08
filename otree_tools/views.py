@@ -10,7 +10,7 @@ from otree.views.export import get_export_response
 from otree.views.mturk import get_mturk_client
 from otree_tools.models import EnterEvent, ExitEvent, FocusEvent
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from .export import export_wide
 from django.template import loader
 import csv
@@ -98,7 +98,65 @@ class FocusEventCSVExport(UniEventCSVExport, ListView):
     template_name = 'otree_tools/{}'.format(filename)
 
 
-# END OF TIME STAMPS BLOCK
+#### an experiment on streaming focus events to csv
+
+class Echo:
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+
+class StreamingFocusCSV(UniEventCSVExport, ListView):
+    queryset = FocusEvent.objects.all()
+    url_name = 'streaming_focus_csv'
+    url_pattern = r'^streaming_focusevent_csv_export/$'
+    response_class = StreamingHttpResponse
+    content_type = 'text/csv'
+    filename = 'focus_data.csv'
+    template_name = 'otree_tools/{}'.format(filename)
+
+    # import csv
+    # from django.http import StreamingHttpResponse
+
+    def get_headers(self):
+        return ['code', 'pk']
+
+    def get_data(self, item):
+        return {
+            'code': item.code,
+            'pk': item.pk,
+        }
+
+    # StreamingHttpResponse requires a File-like class that has a 'write' method
+    class Echo(object):
+        def write(self, value):
+            return value
+
+    def iter_items(self, items, pseudo_buffer):
+        writer = csv.DictWriter(pseudo_buffer, fieldnames=self.get_headers())
+        yield pseudo_buffer.write(self.get_headers())
+
+        for item in items:
+            yield writer.writerow(self.get_data(item))
+
+    def get(self, request, *args, **kwargs):
+        queryset = Participant.objects.all()
+        print(queryset)
+        response = StreamingHttpResponse(
+            streaming_content=(self.iter_items(queryset, Echo())),
+            content_type='text/csv',
+        )
+        response['Content-Disposition'] = 'attachment;filename=items.csv'
+        return response
+
+
+
+        # END OF TIME STAMPS BLOCK
+
 
 # Block dealing with exporting participant vars #
 
