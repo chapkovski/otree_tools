@@ -1,0 +1,31 @@
+{% extends "otree_tools/BaseToolsAdmin.html" %}
+
+{% block title %}
+Welcome to <span class="textarea">otree-tools {{version}}</span>
+{% endblock %}
+
+{% block content %}
+<div class="list-group">
+
+    <a href="{% url 'individual_sessions_export' %}" class="list-group-item list-group-item-action">Export data from individual sessions (including
+        <span class="textarea">participant.vars</span>)</a>
+    <a href="{% url 'time_spent_timestamps' %}" class="list-group-item list-group-item-action">View and export data from time trackers</a>
+    <a href="{% url 'focus_events' %}" class="list-group-item list-group-item-action">View and export data from focus trackers</a>
+    <a href="#" class="list-group-item list-group-item-action disabled">Amazon mTurk management</a>
+    <a href="#" class="list-group-item list-group-item-action disabled">PayPal management</a>
+</div>
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+<style>
+    .textarea {
+        font-family: Consolas, Lucida Console, monospace;
+    }
+</style>
+
+{% endblock %}
+
+{% block internal_scripts %}
+{{ block.super }}
+{% endblock %}

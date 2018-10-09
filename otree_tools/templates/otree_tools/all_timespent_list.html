@@ -1,13 +1,13 @@
-{% extends "otree/BaseAdmin.html" %}
+{% extends "otree_tools/BaseToolsAdmin.html" %}
 
 {% block title %}
+
 Time tracking info (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverbatim %}</code> tag)
-<a
-        class="btn btn-lg btn-success mx-3" role="button" href="{% url 'enterexit_csv_export'    %}">Export as
-    CSV</a>
+
 {% endblock %}
 
 {% block content %}
+
 {%  if timestamps %}
 <table class="table table-hover table-striped table-resonsive">
     <thead>

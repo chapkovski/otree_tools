@@ -15,7 +15,8 @@ from .export import export_wide
 from django.template import loader
 import csv
 from datetime import timedelta
-
+from django.core.urlresolvers import reverse
+from . import __version__ as otree_tools_version
 
 # import otree_tools.forms as forms
 # END OF BLOCK
@@ -27,8 +28,12 @@ from datetime import timedelta
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
 class EnterExitMixin:
     def get_queryset(self):
-        earliest_exit = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('timestamp')
+        # when we request num_exits>0 we get only those enter events which have some corresponding
+        # exit events. we should sort them based on their exit type because form is submitted before or at the
+        # same time as page is unloaded etc.
+        earliest_exit = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('exit_type', 'timestamp')
         subquery_earliest = Subquery(earliest_exit.values('pk')[:1])
+
         tot_enter_events = EnterEvent.objects. \
             annotate(num_exits=Count('exits')). \
             filter(num_exits__gt=0). \
@@ -51,12 +56,18 @@ class EnterExitMixin:
 
 
 class PaginatedListView(ListView):
+    navbar_active_tag = None
+    export_link_name = None
+
     def get_context_data(self, **kwargs):
         c = super().get_context_data(**kwargs)
+        c['nbar'] = self.navbar_active_tag
         curpage_num = c['page_obj'].number
         paginator = c['paginator']
         epsilon = 3
         c['allowed_range'] = range(max(1, curpage_num - epsilon), min(curpage_num + epsilon, paginator.num_pages) + 1)
+        if self.export_link_name:
+            c['export_link'] = reverse(self.export_link_name)
         return c
 
 
@@ -67,6 +78,8 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
     display_name = 'Time spent per page [otree-tools]'
     context_object_name = 'timestamps'
     paginate_by = 50
+    navbar_active_tag = 'time'
+    export_link_name = 'enterexit_csv_export'
 
 
 class FocusEventList(PaginatedListView):
@@ -77,6 +90,8 @@ class FocusEventList(PaginatedListView):
     context_object_name = 'focusevents'
     queryset = FocusEvent.objects.all()
     paginate_by = 50
+    navbar_active_tag = 'focus'
+    export_link_name = 'streaming_focus_csv'
 
 
 class Echo:
@@ -154,6 +169,36 @@ class StreamingEnterCSV(EnterExitMixin, StreamingCSVExport):
 # END OF TIME STAMPS BLOCK
 
 
+# Welcoming page
+class HomeView(TemplateView):
+    template_name = 'otree_tools/home.html'
+    url_name = 'otree_tools_home'
+    url_pattern = r'^otree_tools/$'
+    display_name = 'otree-tools Home page'
+    navbar_active_tag = 'home'
+
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        c['nbar'] = self.navbar_active_tag
+        c['version'] = otree_tools_version
+        return c
+
+
+# End of welcoming page
+
+# Dealin with individual session export - a list of all sessions goes first
+class AllSessionsList(PaginatedListView):
+    template_name = 'otree_tools/all_session_list.html'
+    url_name = 'individual_sessions_export'
+    url_pattern = r'^individual_sessions_export/$'
+    display_name = 'Exporting data from individual sessions'
+    navbar_active_tag = 'export'
+    queryset = Session.objects.all()
+    context_object_name = 'sessions'
+    paginate_by = 10
+
+
+# END OF BLOCK:: Dealin with individual session export - a list of all sessions goes first
 # Block dealing with exporting participant vars #
 
 
@@ -200,17 +245,22 @@ class PVarsMixin(object):
         return q
 
 
-class ListPVarsView(PVarsMixin, ListView):
+class ListPVarsView(PVarsMixin, PaginatedListView):
     template_name = 'otree_tools/pvars_list.html'
     url_name = 'pvars_list'
     url_pattern = r'^session/(?P<pk>[a-zA-Z0-9_-]+)/pvars/$'
     model = Participant
     context_object_name = 'pvars'
+    paginate_by = 20
+    navbar_active_tag = 'export'
+    export_link_name = None
 
     def get_context_data(self, **kwargs):
         c = super().get_context_data(**kwargs)
-        c['session'] = self.get_session()
+        session = self.get_session()
+        c['session'] = session
         c['heads'] = self.heads
+        c['export_link'] = reverse('pvars_csv_export', kwargs={'pk': session.pk})
         return c
 
 
@@ -280,17 +330,6 @@ class SpecificSessionDataView(vanilla.TemplateView):
             request, session_code)
         export_wide(response, file_extension, session_code=session_code)
         return response
-
-
-class AllSessionsList(vanilla.TemplateView):
-    template_name = 'otree_tools/all_session_list.html'
-    url_name = 'individual_sessions_export'
-    url_pattern = r'^individual_sessions_export/$'
-    display_name = 'Exporting data from individual sessions'
-
-    def get(self, request, *args, **kwargs):
-        all_sessions = Session.objects.all()
-        return render(request, self.template_name, {'sessions': all_sessions})
 
 
 class HitsList(vanilla.TemplateView):

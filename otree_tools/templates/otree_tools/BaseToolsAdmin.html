@@ -1,0 +1,54 @@
+{% extends "otree/BaseAdmin.html" %}
+
+{% block body_main %}
+{% with anbar=nbar|default:None %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top  fixed-top-2">
+  <a class="navbar-brand" href="{% url 'otree_tools_home' %}">oTree-tools</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto ">
+      <li class="nav-item {% if anbar == 'home' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'otree_tools_home' %}">Home <span class="sr-only">(current)</span></a>
+      </li>
+
+      <li class="nav-item {% if anbar == 'export' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'individual_sessions_export' %}">Export</a>
+      </li>
+      <li class="nav-item {% if anbar == 'focus' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'focus_events' %}">Focus</a>
+      </li>
+        <li class="nav-item {% if anbar == 'time' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'time_spent_timestamps' %}">Time</a>
+      </li>
+      <li class="nav-item {% if anbar == 'mturk' %}active{% endif %}">
+        <a class="nav-link disabled" href="#">mTurk</a>
+      </li>
+              <li class="nav-item {% if anbar == 'paypal' %}active{% endif %}">
+        <a class="nav-link disabled" href="#">PayPal</a>
+      </li>
+    </ul>
+    {% if export_link|default:None %}
+      <a class="btn btn-lg btn-success mx-3" role="button" href="{{ export_link }}">Export as CSV</a>
+    {% endif %}
+
+  </div>
+</nav>
+{%endwith %}
+{{block.super}}
+
+{% endblock %}
+{% block internal_styles %}
+{{ block.super }}
+<style>
+.fixed-top-2 {
+    margin-top: 56px;
+    margin-bottom: 56px;
+}
+    .container{
+        margin-top:60px;
+    }
+</style>
+{% endblock %}
