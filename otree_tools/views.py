@@ -111,6 +111,8 @@ class Echo:
 
 
 class StreamingFocusCSV(UniEventCSVExport, ListView):
+    # todo: paginate focus and enter exit events
+    # todo: deal with coinciding time stamps of PageUnload and Form Submitted events
     queryset = FocusEvent.objects.all()
     url_name = 'streaming_focus_csv'
     url_pattern = r'^streaming_focusevent_csv_export/$'

@@ -6,7 +6,16 @@ from otree.widgets import CheckboxSelectMultiple
 from otree.common_internal import expand_choice_tuples
 from otree_tools.radiogrid import RadioGridField
 
-class OtherModelField(models.CharField):
+
+class InnerChoiceMixin:
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if name == 'choices':
+            if isinstance(value, (list, tuple)) and len(value) > 0:
+                self.inner_choices = list(expand_choice_tuples(value))
+
+
+class OtherModelField(InnerChoiceMixin, models.CharField):
     other_value = None
     other_label = None
 
@@ -61,7 +70,7 @@ class ListField(models.CharField):
         return json.dumps(value)
 
 
-class MultipleChoiceModelField(ListField):
+class MultipleChoiceModelField(InnerChoiceMixin, ListField):
     def check(self, **kwargs):
         errors = super().check(**kwargs)
         if self.inner_choices is None:
@@ -98,7 +107,7 @@ class MultipleChoiceModelField(ListField):
                     checks.Error(
                         "Initial values should be item(s) in your 'choices' list",
                         obj=self,
-                        id='fields.E921',
+                        id='fields.E922',
                     )
                 ])
         return errors
