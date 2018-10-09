@@ -41,6 +41,7 @@ Time tracking info (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverba
     {% endfor %}
     </tbody>
 </table>
+{% include 'otree_tools/includes/pagination_footer.html' %}
 {% else %}
 No information about time tracking is available. If you want to track time spent per page, insert
 <code>{% verbatim %} {%&nbsp;tracking_time&nbsp;%} {% endverbatim %}</code> to a corresponding template.

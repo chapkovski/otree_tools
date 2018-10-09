@@ -46,118 +46,112 @@ class EnterExitMixin:
                 i.timediff = i.early_exits - i.timestamp
 
             i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
+
         return tot_enter_events
 
 
-class EnterExitEventList(EnterExitMixin, ListView):
+class PaginatedListView(ListView):
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        curpage_num = c['page_obj'].number
+        paginator = c['paginator']
+        epsilon = 3
+        c['allowed_range'] = range(max(1, curpage_num - epsilon), min(curpage_num + epsilon, paginator.num_pages) + 1)
+        return c
+
+
+class EnterExitEventList(EnterExitMixin, PaginatedListView):
     template_name = 'otree_tools/all_timespent_list.html'
     url_name = 'time_spent_timestamps'
     url_pattern = r'^time_spent_per_page/$'
     display_name = 'Time spent per page [otree-tools]'
     context_object_name = 'timestamps'
+    paginate_by = 50
 
 
-class UniEventCSVExport(TemplateView):
-    def get(self, request, *args, **kwargs):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)
-        timestamps = self.get_queryset()
-        t = loader.get_template(self.template_name)
-        c = {
-            'timestamps': timestamps,
-        }
-        response.write(t.render(c))
-        return response
-
-
-class EnterExitCSVExport(EnterExitMixin, UniEventCSVExport):
-    url_name = 'enterexit_csv_export'
-    url_pattern = r'^enterexit_csv_export/$'
-    response_class = HttpResponse
-    content_type = 'text/csv'
-    filename = 'enter_exit_data.csv'
-    template_name = 'otree_tools/{}'.format(filename)
-
-
-class FocusEventList(ListView):
+class FocusEventList(PaginatedListView):
     template_name = 'otree_tools/focus_event_list.html'
     url_name = 'focus_events'
     url_pattern = r'^focus_events/$'
     display_name = 'Focus/unfocus events [otree-tools]'
     context_object_name = 'focusevents'
     queryset = FocusEvent.objects.all()
+    paginate_by = 50
 
-
-class FocusEventCSVExport(UniEventCSVExport, ListView):
-    queryset = FocusEvent.objects.all()
-    url_name = 'focusevent_csv_export'
-    url_pattern = r'^focusevent_csv_export/$'
-    response_class = HttpResponse
-    content_type = 'text/csv'
-    filename = 'focus_data.csv'
-    template_name = 'otree_tools/{}'.format(filename)
-
-
-#### an experiment on streaming focus events to csv
 
 class Echo:
-    """An object that implements just the write method of the file-like
-    interface.
-    """
-
     def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
         return value
 
 
-class StreamingFocusCSV(UniEventCSVExport, ListView):
-    # todo: paginate focus and enter exit events
-    # todo: deal with coinciding time stamps of PageUnload and Form Submitted events
-    queryset = FocusEvent.objects.all()
-    url_name = 'streaming_focus_csv'
-    url_pattern = r'^streaming_focusevent_csv_export/$'
+class StreamingCSVExport(ListView):
     response_class = StreamingHttpResponse
     content_type = 'text/csv'
-    filename = 'focus_data.csv'
-    template_name = 'otree_tools/{}'.format(filename)
-
-    # import csv
-    # from django.http import StreamingHttpResponse
-
-    def get_headers(self):
-        return ['code', 'pk']
-
-    def get_data(self, item):
-        return {
-            'code': item.code,
-            'pk': item.pk,
-        }
-
-    # StreamingHttpResponse requires a File-like class that has a 'write' method
-    class Echo(object):
-        def write(self, value):
-            return value
 
     def iter_items(self, items, pseudo_buffer):
         writer = csv.DictWriter(pseudo_buffer, fieldnames=self.get_headers())
-        yield pseudo_buffer.write(self.get_headers())
+        yield writer.writerow(dict((fn, fn) for fn in self.get_headers()))
 
         for item in items:
             yield writer.writerow(self.get_data(item))
 
     def get(self, request, *args, **kwargs):
-        queryset = Participant.objects.all()
-        print(queryset)
         response = StreamingHttpResponse(
-            streaming_content=(self.iter_items(queryset, Echo())),
+            streaming_content=(self.iter_items(self.get_queryset(), Echo())),
             content_type='text/csv',
         )
-        response['Content-Disposition'] = 'attachment;filename=items.csv'
+        response['Content-Disposition'] = 'attachment;filename={}'.format(self.filename)
         return response
 
 
+class StreamingFocusCSV(StreamingCSVExport):
+    # todo: deal with coinciding time stamps of PageUnload and Form Submitted events
+    url_name = 'streaming_focus_csv'
+    url_pattern = r'^streaming_focusevent_csv_export/$'
+    filename = 'focus_data.csv'
 
-        # END OF TIME STAMPS BLOCK
+    def get_queryset(self):
+        return FocusEvent.objects.all()
+
+    def get_headers(self):
+        return ['session_code', 'participant_code', 'app_name', 'round_number', 'page_name', 'timestamp',
+                'event_type', ]
+
+    def get_data(self, item):
+        #  unfortunately we can't make it more compact because reverse relations cannot be obtained with
+        # general relations (or at least im too lazy to figure out how
+        return {'session_code': item.participant.session.code,
+                'participant_code': item.participant.code,
+                'app_name': item.app_name,
+                'round_number': item.player.round_number,
+                'page_name': item.page_name,
+                'timestamp': item.timestamp,
+                'event_type': item.event_type}
+
+
+class StreamingEnterCSV(EnterExitMixin, StreamingCSVExport):
+    url_name = 'enterexit_csv_export'
+    url_pattern = r'^enterexit_csv_export/$'
+    filename = 'enter_exit_data.csv'
+
+    def get_headers(self):
+        return ['session_code', 'participant_code', 'app_name', 'round_number', 'page_name',
+                'entrance_timestamp', 'exit_timestamp', 'duration', 'exit_type'
+                ]
+
+    def get_data(self, item):
+        return {'session_code': item.participant.session.code,
+                'participant_code': item.participant.code,
+                'app_name': item.app_name,
+                'round_number': item.player.round_number,
+                'page_name': item.page_name,
+                'entrance_timestamp': item.timestamp,
+                'exit_timestamp': item.early_exits,
+                'duration': item.timediff,
+                'exit_type': item.exittype}
+
+
+# END OF TIME STAMPS BLOCK
 
 
 # Block dealing with exporting participant vars #

@@ -36,9 +36,10 @@ Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %
     {% endfor %}
     </tbody>
 </table>
+{% include 'otree_tools/includes/pagination_footer.html' %}
 {% else %}
-    No information about focus events is available. If you want to track whether and when a user leaves the page, insert
-    <code>{% verbatim %} {%&nbsp;tracking_focus&nbsp;%} {% endverbatim %}</code> to a corresponding template.
+No information about focus events is available. If you want to track whether and when a user leaves the page, insert
+<code>{% verbatim %} {%&nbsp;tracking_focus&nbsp;%} {% endverbatim %}</code> to a corresponding template.
 {% endif %}
 {% endblock %}
 
