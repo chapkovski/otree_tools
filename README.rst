@@ -48,3 +48,4 @@ enter/exit trackers as CSV
 0.2.3: fixin issue with time_tracking tag
 0.3.0: OtherField and MultipliChoice Field supports FOO_choices from oTree; admin menu; pagination of all lists
 streaming export of time and focus trackers; issue with time tracker events is solved
+0.3.1: Upgrading boto
