@@ -5,7 +5,7 @@ from otree_tools.forms.fields import OtherFormField, MultiSelectFormField
 from otree.widgets import CheckboxSelectMultiple
 from otree.common_internal import expand_choice_tuples
 from otree_tools.radiogrid import RadioGridField
-
+from otree_tools.widgets import NoCheckboxCheckbox
 
 class InnerChoiceMixin:
     def __setattr__(self, name, value):
@@ -156,6 +156,6 @@ class MultipleChoiceModelField(InnerChoiceMixin, ListField):
         if self.inner_choices is not None:
             return MultiSelectFormField(choices=self.inner_choices,
                                         label=self.verbose_name, required=not self.blank,
-                                        widget=CheckboxSelectMultiple(choices=self.inner_choices),
+                                        widget=NoCheckboxCheckbox(choices=self.inner_choices),
                                         max_choices=self.max_choices,
                                         **kwargs)

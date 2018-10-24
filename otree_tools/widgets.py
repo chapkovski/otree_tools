@@ -1,9 +1,24 @@
 from django.forms import widgets
 import numbers
 import math
+from otree.widgets import CheckboxSelectMultiple
 
 # for decompression
 divider = ':'
+
+
+class NoCheckboxCheckbox(CheckboxSelectMultiple):
+    input_type = 'radiobutton'
+    template_name = 'otree_tools/widgets/multiple_choice_select.html'
+    option_template_name = 'otree_tools/widgets/multiple_choice_option.html'
+
+    class Media:
+        css = {'all': ('css/otree_tools_widgets.css',)}
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        b = super().build_attrs(base_attrs, extra_attrs)
+        b['class'] = 'form-check-input otree-tools-checkbox'
+        return b
 
 
 class OtherTextInput(widgets.TextInput):
@@ -121,8 +136,8 @@ class AdvancedSliderWidget(widgets.NumberInput):
         a_.setdefault('secondary_ticks', True)
         a_.setdefault('show_ticks', True)
         self.default_med_value = round((a_['min'] + a_['max']) / 2, self.ndigits)
-        if self.ndigits==0:
-            self.default_med_value = int(self.default_med_value )
+        if self.ndigits == 0:
+            self.default_med_value = int(self.default_med_value)
         a_['slider_start_value'] = value if value is not None else self.default_med_value
         a_.setdefault('suffix', self.suffix)
         a_['show_value'] = self.show_value
@@ -139,4 +154,3 @@ class AdvancedSliderWidget(widgets.NumberInput):
         #     }
         #     js = ('jquery-ui/jquery-ui.min.js',
         #           'js/slider.js',)
-

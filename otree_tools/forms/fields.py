@@ -14,13 +14,6 @@ class OtherFormField(MultiValueField):
     other_label = 'Other'
     required = True
 
-    # def __setattr__(self, name, value):
-    #     super().__setattr__(name, value)
-    #     if name == 'choices':
-    #         print('CHANGING TO:::', value)
-    #         self.widget.choices=value
-    #         print('QQQQQ',self.widget.__dict__)
-
     def __init__(self, other_value=None, other_label=None, label='', **kwargs):
 
         self.choices = kwargs.pop('choices')
