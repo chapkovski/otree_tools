@@ -5,6 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
+FOCUS_EVENT_TYPES = (
+(0, 'Page shown'), (1, 'Visibility: off'), (2, 'Focus: off'), (3, 'Visibility: on'), (4, 'Focus: on'))
 
 
 # There are 3 different scenarios how a client may exit the page.
@@ -55,7 +57,6 @@ class GeneralEvent(models.Model):
     timestamp = models.DateTimeField()
 
 
-
 class EnterEvent(GeneralEvent):
     class Meta(GeneralEvent.Meta):
         base_manager_name = 'objects'
@@ -85,4 +86,5 @@ class ExitEvent(models.Model):
 
 
 class FocusEvent(GeneralEvent):
-    event_type = models.CharField(max_length=1000)
+    event_desc_type = models.CharField(max_length=1000)
+    event_num_type = models.IntegerField(choices=FOCUS_EVENT_TYPES)

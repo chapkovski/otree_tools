@@ -18,6 +18,7 @@ from datetime import timedelta
 from django.core.urlresolvers import reverse
 from . import __version__ as otree_tools_version
 
+
 # import otree_tools.forms as forms
 # END OF BLOCK
 # BLOCK FOR TESTING JSON THINGS
@@ -130,7 +131,7 @@ class StreamingFocusCSV(StreamingCSVExport):
 
     def get_headers(self):
         return ['session_code', 'participant_code', 'app_name', 'round_number', 'page_name', 'timestamp',
-                'event_type', ]
+                'event_desc_type', ]
 
     def get_data(self, item):
         #  unfortunately we can't make it more compact because reverse relations cannot be obtained with
@@ -141,7 +142,7 @@ class StreamingFocusCSV(StreamingCSVExport):
                 'round_number': item.player.round_number,
                 'page_name': item.page_name,
                 'timestamp': item.timestamp,
-                'event_type': item.event_type}
+                'event_desc_type': item.event_desc_type}
 
 
 class StreamingEnterCSV(EnterExitMixin, StreamingCSVExport):

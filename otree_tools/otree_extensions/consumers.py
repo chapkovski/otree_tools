@@ -93,7 +93,8 @@ class FocusTracker(GeneralTracker):
         raw_content = json.loads(content)
         raw_time = raw_content['timestamp']
         timestamp = datetime.fromtimestamp(raw_time / 1000)
-        event_type = raw_content['eventtype']
+        event_num_type = raw_content['event_num_type']
+        event_desc_type = raw_content['event_desc_type']
 
         participant, app_name, player = self.get_player_and_app()
         if participant is not None:
@@ -101,7 +102,8 @@ class FocusTracker(GeneralTracker):
                                                              timestamp=timestamp,
                                                              player=player,
                                                              app_name=app_name,
-                                                             event_type=event_type)
+                                                             event_desc_type=event_desc_type,
+                                                             event_num_type=event_num_type, )
 
     def connect(self, message, **kwargs):
         print('Client connected to focus tracker...')
