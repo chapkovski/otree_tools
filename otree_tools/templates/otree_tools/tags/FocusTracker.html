@@ -1,7 +1,8 @@
 {% load static  %}
-
+{# todo: build type_correspondence in non hardcoded way #}
 <script>
-    var type_correspondence = {{ type_correspondence|safe}};
+
+    var type_correspondence = {{type_correspondence | safe}};
     var initial_state_for_msg, initial_state_timestamp;
     document.addEventListener("DOMContentLoaded", function () {
         initial_state_for_msg = 0;
@@ -14,9 +15,9 @@
         var socket = new ReconnectingWebSocket(ws_path);
 
         function sendingEvent(event_num_type, timestamp) {
-            var event_desc_type  = type_correspondence[event_num_type];
+            var event_desc_type = type_correspondence[event_num_type];
             var msg = JSON.stringify({
-                'event_desc_type': event_desc_type ,
+                'event_desc_type': event_desc_type,
                 'event_num_type': event_num_type,
                 'timestamp': timestamp,
             });
@@ -47,7 +48,10 @@
         window.addEventListener('blur', function () {
             sendingEvent(2, new Date().getTime());
         });
-
+        $('form#form').on('submit', function () {
+            submittingformtime = new Date().getTime();
+            sendingEvent(5, submittingformtime);
+        });
 
     })
     ;

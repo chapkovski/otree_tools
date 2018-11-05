@@ -98,12 +98,13 @@ class FocusTracker(GeneralTracker):
 
         participant, app_name, player = self.get_player_and_app()
         if participant is not None:
-            participant.otree_tools_focusevent_events.create(page_name=self.page_name,
+             participant.otree_tools_focusevent_events.create(page_name=self.page_name,
                                                              timestamp=timestamp,
                                                              player=player,
                                                              app_name=app_name,
                                                              event_desc_type=event_desc_type,
                                                              event_num_type=event_num_type, )
+
 
     def connect(self, message, **kwargs):
         print('Client connected to focus tracker...')

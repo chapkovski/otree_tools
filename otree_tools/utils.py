@@ -37,7 +37,8 @@ def _aggregate_focus_time(player, page_name, focus_on=True):
     if not relfocuses.exists():
         return
 
-    exit_types = [1, 2]
+
+    exit_types = [1, 2, 5]
     enter_types = [0, 3, 4]
     if relfocuses.first().event_num_type not in exit_types:
         return
@@ -67,6 +68,7 @@ def _aggregate_focus_time(player, page_name, focus_on=True):
 
 def get_focused_time(player, page_name):
     return _aggregate_focus_time(player, page_name)
+
 
 def get_unfocused_time(player, page_name):
     return _aggregate_focus_time(player, page_name, focus_on=False)

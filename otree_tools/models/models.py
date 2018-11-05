@@ -6,7 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
 FOCUS_EVENT_TYPES = (
-(0, 'Page shown'), (1, 'Visibility: off'), (2, 'Focus: off'), (3, 'Visibility: on'), (4, 'Focus: on'))
+(0, 'Page shown'), (1, 'Visibility: off'), (2, 'Focus: off'), (3, 'Visibility: on'), (4, 'Focus: on'), (5,'Form submitted'))
 
 
 # There are 3 different scenarios how a client may exit the page.
