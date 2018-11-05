@@ -2,6 +2,7 @@ from otree.models_concrete import PageCompletion
 from otree_tools.models import EnterEvent, FocusEvent
 from django.db.models import Count, Min, Sum, Q, ExpressionWrapper, F, DurationField
 from datetime import timedelta
+from time import sleep
 
 
 def get_seconds_per_page(player, page_name):
@@ -37,11 +38,14 @@ def _aggregate_focus_time(player, page_name, focus_on=True):
     if not relfocuses.exists():
         return
 
-
     exit_types = [1, 2, 5]
     enter_types = [0, 3, 4]
     if relfocuses.first().event_num_type not in exit_types:
-        return
+        # A VERY BAD FIX
+        sleep(0.03)
+        if relfocuses.first().event_num_type not in exit_types:
+
+            return
     if relfocuses.last().event_num_type not in enter_types:
         return
     for i in relfocuses:
