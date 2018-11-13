@@ -45,3 +45,19 @@ def button(context, label='', *args, **kwargs):
         )
     context['label'] = label
     return context
+
+
+@register.inclusion_tag('otree_tools/tags/ConfirmButton.html', takes_context=True, name='confirm_button')
+def confirm_button(context,
+                   title='Info',
+                   message='Are you sure you would like to proceed?',
+                   main_button='Next',
+                   yes_button='Yes',
+                   no_button='No'):
+    c = context
+    c['title'] = title
+    c['message'] = message
+    c['main_button'] = main_button
+    c['yes_button'] = yes_button
+    c['no_button'] = no_button
+    return c
