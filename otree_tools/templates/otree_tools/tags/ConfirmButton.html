@@ -9,7 +9,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>{{ message }}</p>
+                <p class="otree-modal-message">{{ message }}</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ no_button }}</button>
@@ -19,7 +19,7 @@
     </div>
 </div>
 <div class="my-3">
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#otree_tools_modal">
+    <button type="button" class="btn btn-primary otree-modal-main-button" data-toggle="modal" data-target="#otree_tools_modal">
         {{ main_button }}
     </button>
 </div>
