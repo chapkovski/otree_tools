@@ -53,3 +53,4 @@ streaming export of time and focus trackers; issue with time tracker events is s
 0.3.3: in `utils` two extra functions are added: `get_focused_time()` and `get_unfocused_time()`
 0.3.4: minor error correction in `get_focused_time` function
 0.3.6: `confirm_button` tag for showing modal with confirmation before proceeding further
+0.3.8: Fixing `get_XXX_time` functions

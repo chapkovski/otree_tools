@@ -2,6 +2,24 @@ from otree.models_concrete import PageCompletion
 from otree_tools.models import EnterEvent, FocusEvent
 from django.db.models import Count, Min, Sum, Q, ExpressionWrapper, F, DurationField
 from datetime import timedelta
+import errno
+import shutil
+import logging
+
+
+def copy(src, dest):
+    try:
+        shutil.copytree(src, dest)
+        return True
+    except OSError as e:
+        # If the error was caused because the source wasn't a directory
+        if e.errno == errno.ENOTDIR:
+            shutil.copy(src, dest)
+            return True
+        else:
+            logger = logging.getLogger('otree-tools')
+            logger.error('Directory not copied. Error: {}'.format(e))
+            return False
 
 
 def get_seconds_per_page(player, page_name):
@@ -37,7 +55,6 @@ def _aggregate_focus_time(player, page_name, focus_on=True):
     if not relfocuses.exists():
         return
 
-
     exit_types = [1, 2, 5]
     enter_types = [0, 3, 4]
     if relfocuses.first().event_num_type not in exit_types:
@@ -61,9 +78,9 @@ def _aggregate_focus_time(player, page_name, focus_on=True):
                 else:
                     tot_focus_off += (previous.timestamp - obj.timestamp)
     if focus_on:
-        return tot_focus_on
+        return tot_focus_on.total_seconds()
     else:
-        return tot_focus_off
+        return tot_focus_off.total_seconds()
 
 
 def get_focused_time(player, page_name):
