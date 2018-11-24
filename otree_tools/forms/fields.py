@@ -55,7 +55,8 @@ class MultiSelectFormField(MultipleChoiceField):
     def clean(self, value):
         if not value and self.required:
             raise ValidationError(self.error_messages['required'])
-        # todo: pluralize max_choices
+
         if value and self.max_choices and len(value) > self.max_choices:
-            raise ValidationError('You must select a maximum of {} choices.'.format(self.max_choices))
+            ending = '' if self.max_choices==1 else 's'
+            raise ValidationError('You must select a maximum of {} choice{}.'.format(self.max_choices, ending))
         return value
