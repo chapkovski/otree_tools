@@ -46,7 +46,7 @@ def get_time_per_page(player, page_name):
 
         sum_diff = b['sum_diff']
 
-        return sum_diff
+        return sum_diff.total_seconds()
 
 
 def _aggregate_focus_time(player, page_name, focus_on=True):
