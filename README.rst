@@ -57,3 +57,4 @@ streaming export of time and focus trackers; issue with time tracker events is s
 0.3.9: Converting `get_time_per_page` function making it return `.total_seconds()`, not a timedelta object
 0.3.10: fixing error message in multipleselectfield
 0.3.11: adding `min_choices` to multipleselectfield
+0.3.12: minor fix of multipleselectfield - dynamic choices

@@ -72,6 +72,8 @@ class ListField(models.CharField):
 
 
 class MultipleChoiceModelField(InnerChoiceMixin, ListField):
+    default_length = 3
+
     def check(self, **kwargs):
         errors = super().check(**kwargs)
         if self.inner_choices is None:
@@ -139,8 +141,16 @@ class MultipleChoiceModelField(InnerChoiceMixin, ListField):
             self.max_choices = kwargs.pop('max_choices', len(self.inner_choices))
             self.min_choices = kwargs.pop('min_choices', 0)
         else:
-            kwargs.pop('max_choices')
-            kwargs.pop('min_choices')
+            self.max_choices = kwargs.pop('max_choices', None)
+            self.min_choices = kwargs.pop('min_choices', None)
+            if self.max_choices:
+                self.inner_choices = [str(i) for i in range(1, self.max_choices + 1)]
+            else:
+                if self.min_choices:
+                    self.inner_choices = [str(i) for i in range(1, self.min_choices + 1)]
+                else:
+                    self.inner_choices = [str(i) for i in range(1, self.default_length)]
+
         self.initial = initial
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null', True)
