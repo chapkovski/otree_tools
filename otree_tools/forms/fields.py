@@ -49,14 +49,24 @@ class MultiSelectFormField(MultipleChoiceField):
     widget = CheckboxSelectMultiple
 
     def __init__(self, *args, **kwargs):
-        self.max_choices = kwargs.pop('max_choices', 0)
+        self.max_choices = kwargs.pop('max_choices', None)
+        self.min_choices = kwargs.pop('min_choices', None)
         super(MultiSelectFormField, self).__init__(*args, **kwargs)
 
     def clean(self, value):
         if not value and self.required:
             raise ValidationError(self.error_messages['required'])
-
-        if value and self.max_choices and len(value) > self.max_choices:
-            ending = '' if self.max_choices==1 else 's'
-            raise ValidationError('You must select a maximum of {} choice{}.'.format(self.max_choices, ending))
+        if value and self.max_choices and self.min_choices:
+            if self.max_choices == self.min_choices:
+                if len(value) != self.max_choices:
+                    ending = '' if self.max_choices == 1 else 's'
+                    raise ValidationError('You must select exactly {} choice{}.'.format(self.max_choices, ending))
+        if value and self.max_choices:
+            if len(value) > self.max_choices:
+                ending = '' if self.max_choices == 1 else 's'
+                raise ValidationError('You must select a maximum of {} choice{}.'.format(self.max_choices, ending))
+        if value and self.min_choices:
+            if len(value) < self.min_choices:
+                ending = '' if self.min_choices == 1 else 's'
+                raise ValidationError('You must select a minimum of {} choice{}.'.format(self.min_choices, ending))
         return value

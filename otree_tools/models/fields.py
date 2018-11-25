@@ -7,6 +7,7 @@ from otree.common_internal import expand_choice_tuples
 from otree_tools.radiogrid import RadioGridField
 from otree_tools.widgets import NoCheckboxCheckbox
 
+
 class InnerChoiceMixin:
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
@@ -117,6 +118,7 @@ class MultipleChoiceModelField(InnerChoiceMixin, ListField):
             *,
             choices=None,
             max_choices=None,
+            min_choices=None,
             label=None,
             max_length=10000,
             doc='',
@@ -129,13 +131,16 @@ class MultipleChoiceModelField(InnerChoiceMixin, ListField):
             label=label,
             initial=initial,
             max_choices=max_choices,
+            min_choices=min_choices,
         ))
 
         self.inner_choices = kwargs.pop('choices', None)
         if self.inner_choices is not None:
             self.max_choices = kwargs.pop('max_choices', len(self.inner_choices))
+            self.min_choices = kwargs.pop('min_choices', 0)
         else:
             kwargs.pop('max_choices')
+            kwargs.pop('min_choices')
         self.initial = initial
         kwargs.setdefault('help_text', '')
         kwargs.setdefault('null', True)
@@ -158,4 +163,5 @@ class MultipleChoiceModelField(InnerChoiceMixin, ListField):
                                         label=self.verbose_name, required=not self.blank,
                                         widget=NoCheckboxCheckbox(choices=self.inner_choices),
                                         max_choices=self.max_choices,
+                                        min_choices=self.min_choices,
                                         **kwargs)
