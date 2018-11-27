@@ -89,3 +89,22 @@ def get_focused_time(player, page_name):
 
 def get_unfocused_time(player, page_name):
     return _aggregate_focus_time(player, page_name, focus_on=False)
+
+
+def _get_numbers(player, page_name, event_type):
+    return FocusEvent.objects.filter(player_id=player.pk, participant=player.participant,
+                                     page_name=page_name, event_num_type=event_type).count()
+
+
+def num_focus_events(player, page_name, off=True):
+    if off:
+        return _get_numbers(player, page_name, 2)
+    else:
+        return _get_numbers(player, page_name, 4)
+
+
+def num_visibility_events(player, page_name, off=True):
+    if off:
+        return _get_numbers(player, page_name, 1)
+    else:
+        return _get_numbers(player, page_name, 3)
