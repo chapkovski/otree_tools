@@ -16,12 +16,12 @@ Installation:
 -  clone exisiting project ``git clone https://github.com/chapkovski/otree_tools`` and copy the
 ``otree_tools`` folder into your project folder, next to the apps of your module.
 
-3. After that add "otree_tools" to your INSTALLED_APPS section of ``settings.py`` file like this::
+3. After that add "otree_tools" to your EXTENSION_APPS section of ``settings.py`` file like this::
 
-    INSTALLED_APPS = [
-        'otree',
-        'otree_tools',
-    ]
+    EXTENSION_APPS = ['otree_tools']
+
+If your settings contain other otree extensions, listed in EXTENSION_APSS, just add `otree_tools` into the same list.
+The extensions work independently from each other and they will not be in a conflict.
 
 4. If you would like to track time or focused/unfocused time a user spends on a specific page, you need to include
 to a standard oTree template a reference to `otree_tools` and then include trackers::
@@ -31,9 +31,10 @@ to a standard oTree template a reference to `otree_tools` and then include track
         {% tracking_focus %}
         {% tracking_time %}
      {% endblock%}
+
 `tracking_focus` and `tracking_time` tags can be included into any block, not necessarily to `content`
 
-## Version History
+Version History
 ***************
 
 0.0.4: An `AdvancedSliderWidget` is added to `widgets`
