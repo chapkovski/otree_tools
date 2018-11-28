@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.13.1: http://docutils.sourceforge.net/" />
+<title>Set of tools facilitating the development of oTree projects</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="set-of-tools-facilitating-the-development-of-otree-projects">
+<h1 class="title">Set of tools facilitating the development of oTree projects</h1>
+
+<p>Author: Philipp Chapkovski (<a class="reference external" href="mailto:chapkovski&#64;gmail.com">chapkovski&#64;gmail.com</a>)</p>
+<div class="section" id="installation">
+<h1>Installation:</h1>
+<ol class="arabic simple">
+<li><strong>Either</strong>:</li>
+</ol>
+<ul class="simple">
+<li>type <tt class="docutils literal">pip install otree_tools</tt> in your terminal window.</li>
+</ul>
+<ol class="arabic simple" start="2">
+<li><strong>or</strong>:</li>
+</ol>
+<ul class="simple">
+<li>clone exisiting project <tt class="docutils literal">git clone <span class="pre">https://github.com/chapkovski/otree_tools</span></tt> and copy the</li>
+</ul>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">/Users/chapkovski/Google Drive/Documents/otree_tools_project/README.rst</tt>, line 17)</p>
+Bullet list ends without a blank line; unexpected unindent.</div>
+<p><tt class="docutils literal">otree_tools</tt> folder into your project folder, next to the apps of your module.</p>
+<ol class="arabic" start="3">
+<li><p class="first">After that add &quot;otree_tools&quot; to your INSTALLED_APPS section of <tt class="docutils literal">settings.py</tt> file like this:</p>
+<pre class="literal-block">
+INSTALLED_APPS = [
+    'otree',
+    'otree_tools',
+]
+</pre>
+</li>
+</ol>
+<p>4. If you would like to track time or focused/unfocused time a user spends on a specific page, you need to include
+to a standard oTree template a reference to <cite>otree_tools</cite> and then include trackers:</p>
+<pre class="literal-block">
+{% load otree otree_tools %}
+{% block content %}
+   {% tracking_focus %}
+   {% tracking_time %}
+{% endblock%}
+</pre>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">/Users/chapkovski/Google Drive/Documents/otree_tools_project/README.rst</tt>, line 34)</p>
+Literal block ends without a blank line; unexpected unindent.</div>
+<p><cite>tracking_focus</cite> and <cite>tracking_time</cite> tags can be included into any block, not necesserily</p>
+</div>
+<div class="section" id="version-history">
+<h1>## Version History</h1>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">/Users/chapkovski/Google Drive/Documents/otree_tools_project/README.rst</tt>, line 37)</p>
+<p>Title underline too short.</p>
+<pre class="literal-block">
+## Version History
+***************
+</pre>
+</div>
+<p>0.0.4: An <cite>AdvancedSliderWidget</cite> is added to <cite>widgets</cite></p>
+<p>0.0.5: An <cite>AdvancedSliderWidget</cite> is updated to work with float numbers</p>
+<p>0.0.6: An <cite>AdvancedSliderWidget</cite> has a new option 'suffix' which is added to each label</p>
+<p>0.0.7: <cite>ListField</cite> is added as a possible field to render multiple choice selector</p>
+<p>0.0.8: Temporarily removing static jquery-ui files</p>
+<p>0.0.9: ListField gets options to set initial/default values</p>
+<p>0.0.10: ListField gets an option  <cite>max_choices</cite></p>
+<p>0.0.11: New tag <cite>{% tracking_time %}</cite> is added that allows to measure precisely time spent per page</p>
+<p>0.0.12: <cite>ListField</cite> renamed to <cite>MultipleChoiceModelField</cite>. <cite>ListField</cite> becomes a general field to store lists</p>
+<p>0.0.13: <cite>{% tracking_focus}</cite> tag - to track when/if user switches to another tab while staying on the page</p>
+<p>0.0.14: Fixing issue with <cite>{% tracking_focus}</cite> tag - initial visibility event is registered now</p>
+<p>0.0.15: Minor fixes with trackers</p>
+<p>0.1.0: Export of participant.vars is added</p>
+<p>0.1.1: Hosting of Anton Shurashov radiogrid widget (<a class="reference external" href="https://github.com/Sinkler/django-radiogrid">https://github.com/Sinkler/django-radiogrid</a>)</p>
+<p>0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions; export of focus and
+enter/exit trackers as CSV</p>
+<p>0.2.2: fixin issue with restframework</p>
+<p>0.2.3: fixin issue with time_tracking tag</p>
+<p>0.3.0: OtherField and MultipliChoice Field supports FOO_choices from oTree; admin menu; pagination of all lists
+streaming export of time and focus trackers; issue with time tracker events is solved</p>
+<p>0.3.1: Upgrading boto</p>
+<p>0.3.2: Solving issue with Multiple Choice Field</p>
+<p>0.3.3: in <cite>utils</cite> two extra functions are added: <cite>get_focused_time()</cite> and <cite>get_unfocused_time()</cite></p>
+<p>0.3.4: minor error correction in <cite>get_focused_time</cite> function</p>
+<p>0.3.6: <cite>confirm_button</cite> tag for showing modal with confirmation before proceeding further</p>
+<p>0.3.8: Fixing <cite>get_XXX_time</cite> functions</p>
+<p>0.3.9: Converting <cite>get_time_per_page</cite> function making it return <cite>.total_seconds()</cite>, not a timedelta object</p>
+<p>0.3.10: fixing error message in multipleselectfield</p>
+<p>0.3.11: adding <cite>min_choices</cite> to multipleselectfield</p>
+<p>0.3.12: minor fix of multipleselectfield - dynamic choices</p>
+<p>0.3.13: adding <cite>num_focus_events</cite>, <cite>num_visibility_events</cite> functions into <cite>utils</cite></p>
+</div>
+</div>
+</body>
+</html>

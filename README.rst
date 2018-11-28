@@ -23,7 +23,15 @@ Installation:
         'otree_tools',
     ]
 
+4. If you would like to track time or focused/unfocused time a user spends on a specific page, you need to include
+to a standard oTree template a reference to `otree_tools` and then include trackers::
 
+     {% load otree otree_tools %}
+     {% block content %}
+        {% tracking_focus %}
+        {% tracking_time %}
+     {% endblock%}
+`tracking_focus` and `tracking_time` tags can be included into any block, not necessarily to `content`
 
 ## Version History
 ***************
