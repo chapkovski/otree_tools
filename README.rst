@@ -29,33 +29,61 @@ Installation:
 ***************
 
 0.0.4: An `AdvancedSliderWidget` is added to `widgets`
+
 0.0.5: An `AdvancedSliderWidget` is updated to work with float numbers
+
 0.0.6: An `AdvancedSliderWidget` has a new option 'suffix' which is added to each label
+
 0.0.7: `ListField` is added as a possible field to render multiple choice selector
+
 0.0.8: Temporarily removing static jquery-ui files
+
 0.0.9: ListField gets options to set initial/default values
+
 0.0.10: ListField gets an option  `max_choices`
+
 0.0.11: New tag `{% tracking_time %}` is added that allows to measure precisely time spent per page
+
 0.0.12: `ListField` renamed to `MultipleChoiceModelField`. `ListField` becomes a general field to store lists
+
 0.0.13: `{% tracking_focus}` tag - to track when/if user switches to another tab while staying on the page
+
 0.0.14: Fixing issue with `{% tracking_focus}` tag - initial visibility event is registered now
+
 0.0.15: Minor fixes with trackers
+
 0.1.0: Export of participant.vars is added
+
 0.1.1: Hosting of Anton Shurashov radiogrid widget (https://github.com/Sinkler/django-radiogrid)
+
 0.2.1: Incorporating parts of otree_custom_export: json export, and data export for specific sessions; export of focus and
 enter/exit trackers as CSV
+
 0.2.2: fixin issue with restframework
+
 0.2.3: fixin issue with time_tracking tag
+
 0.3.0: OtherField and MultipliChoice Field supports FOO_choices from oTree; admin menu; pagination of all lists
 streaming export of time and focus trackers; issue with time tracker events is solved
+
 0.3.1: Upgrading boto
+
 0.3.2: Solving issue with Multiple Choice Field
+
 0.3.3: in `utils` two extra functions are added: `get_focused_time()` and `get_unfocused_time()`
+
 0.3.4: minor error correction in `get_focused_time` function
+
 0.3.6: `confirm_button` tag for showing modal with confirmation before proceeding further
+
 0.3.8: Fixing `get_XXX_time` functions
+
 0.3.9: Converting `get_time_per_page` function making it return `.total_seconds()`, not a timedelta object
+
 0.3.10: fixing error message in multipleselectfield
+
 0.3.11: adding `min_choices` to multipleselectfield
+
 0.3.12: minor fix of multipleselectfield - dynamic choices
+
 0.3.13: adding `num_focus_events`, `num_visibility_events` functions into `utils`
