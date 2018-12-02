@@ -1,5 +1,5 @@
 import vanilla
-from botocore.exceptions import NoCredentialsError, EndpointConnectionError
+# from botocore.exceptions import NoCredentialsError, EndpointConnectionError
 from django.db.models import Count, Min, OuterRef, Subquery
 from django.db.models import ExpressionWrapper, F, DurationField
 from django.shortcuts import render

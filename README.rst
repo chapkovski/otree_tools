@@ -97,3 +97,5 @@ streaming export of time and focus trackers; issue with time tracker events is s
 0.3.12: minor fix of multipleselectfield - dynamic choices
 
 0.3.13: adding `num_focus_events`, `num_visibility_events` functions into `utils`
+
+0.3.14: removing botocore ref
