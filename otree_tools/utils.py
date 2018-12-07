@@ -1,10 +1,11 @@
 from otree.models_concrete import PageCompletion
-from otree_tools.models import EnterEvent, FocusEvent
+from otree_tools.models import EnterEvent, FocusEvent, Marker
 from django.db.models import Count, Min, Sum, Q, ExpressionWrapper, F, DurationField
 from datetime import timedelta
 import errno
 import shutil
 import logging
+from django.utils import timezone
 
 
 def copy(src, dest):
@@ -22,7 +23,7 @@ def copy(src, dest):
             return False
 
 
-def get_seconds_per_page(player, page_name):
+def get_seconds_per_page(player, page_name, ):
     participant = player.participant
     subsession_pk = player.subsession.pk
     try:
@@ -33,7 +34,7 @@ def get_seconds_per_page(player, page_name):
     return page_info.seconds_on_page
 
 
-def get_time_per_page(player, page_name):
+def get_time_per_page(player, page_name, none_to_zero=False):
     tot_enter_events = EnterEvent.objects.filter(player_id=player.pk, participant=player.participant,
                                                  page_name=page_name
                                                  ).annotate(num_exits=Count('exits')).filter(num_exits__gt=0)
@@ -47,6 +48,20 @@ def get_time_per_page(player, page_name):
         sum_diff = b['sum_diff']
 
         return sum_diff.total_seconds()
+    # TODO: ====================
+    else:
+        params = {'player_id': player.pk, 'participant': player.participant, 'page_name': page_name}
+        if Marker.objects.filter(**params).exists():
+            m = Marker.objects.get(**params)
+            now = timezone.now()
+            diff = now - m.timestamp
+            return diff.total_seconds()
+        else:
+            if none_to_zero:
+                return 0
+            else:
+                return None
+    # TODO: ====================
 
 
 def _aggregate_focus_time(player, page_name, focus_on=True):

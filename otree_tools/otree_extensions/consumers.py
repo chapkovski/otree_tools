@@ -4,8 +4,9 @@ from datetime import datetime
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
-from otree_tools.models import EnterEvent, FocusEvent
+from otree_tools.models import EnterEvent, FocusEvent, Marker
 from otree.models_concrete import ParticipantToPlayerLookup
+from django.utils import timezone
 
 
 class GeneralTracker(JsonWebsocketConsumer):
@@ -74,11 +75,33 @@ class TimeTracker(GeneralTracker):
                                           exit_type=exit_type)
 
     def connect(self, message, **kwargs):
+        # TODO:===========
+        participant, app_name, player = self.get_player_and_app()
+        now = timezone.now()
+        marker, created = Marker.objects.get_or_create(page_name=self.page_name,
+                                                       participant=self.get_participant(),
+                                                       player_id=player.id,
+                                                       app_name=app_name,
+                                                       defaults={'timestamp': now,
+                                                                 'active': True,
+                                                                 'player': player})
+        # TODO:===========
         print('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
         participant = self.get_participant()
         latest_entry = self.get_unclosed_enter_event()
+        # TODO:===========
+        participant, app_name, player = self.get_player_and_app()
+        now = timezone.now()
+        params = {'page_name': self.page_name,
+                  'participant': self.get_participant(),
+                  'player_id': player.id,
+                  'app_name': app_name, }
+        markers= Marker.objects.filter(**params)
+        if markers.exists():
+            markers.update(active=False)
+        # TODO:===========
         if latest_entry is not None:
             latest_entry.exits.create(timestamp=datetime.now(),
                                       exit_type=2)
@@ -98,13 +121,12 @@ class FocusTracker(GeneralTracker):
 
         participant, app_name, player = self.get_player_and_app()
         if participant is not None:
-             participant.otree_tools_focusevent_events.create(page_name=self.page_name,
+            participant.otree_tools_focusevent_events.create(page_name=self.page_name,
                                                              timestamp=timestamp,
                                                              player=player,
                                                              app_name=app_name,
                                                              event_desc_type=event_desc_type,
                                                              event_num_type=event_num_type, )
-
 
     def connect(self, message, **kwargs):
         print('Client connected to focus tracker...')
