@@ -39,14 +39,8 @@ def get_time_per_page(player, page_name, none_to_zero=False):
                                                  page_name=page_name
                                                  ).annotate(num_exits=Count('exits')).filter(num_exits__gt=0)
     if tot_enter_events.exists():
-        b = tot_enter_events.annotate(
-            early_exits=Min('exits__timestamp'),
-            timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
-                                       output_field=DurationField())
-        ).aggregate(sum_diff=Sum('timediff'))
-
-        sum_diff = b['sum_diff']
-
+        b = tot_enter_events.annotate(early_exits=Min('exits__timestamp'))
+        sum_diff = sum([e.early_exits - e.timestamp for e in b], timedelta())
         return sum_diff.total_seconds()
     # TODO: ====================
     else:
@@ -61,7 +55,7 @@ def get_time_per_page(player, page_name, none_to_zero=False):
                 return 0
             else:
                 return None
-    # TODO: ====================
+                # TODO: ====================
 
 
 def _aggregate_focus_time(player, page_name, focus_on=True):
