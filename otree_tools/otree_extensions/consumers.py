@@ -86,7 +86,7 @@ class TimeTracker(GeneralTracker):
                                                                  'active': True,
                                                                  'player': player})
         # TODO:===========
-        print('Client connected to time tracker...')
+        print('Client connected to time tracker... TEST')
 
     def disconnect(self, message, **kwargs):
         participant = self.get_participant()
@@ -98,7 +98,7 @@ class TimeTracker(GeneralTracker):
                   'participant': self.get_participant(),
                   'player_id': player.id,
                   'app_name': app_name, }
-        markers= Marker.objects.filter(**params)
+        markers = Marker.objects.filter(**params)
         if markers.exists():
             markers.update(active=False)
         # TODO:===========
