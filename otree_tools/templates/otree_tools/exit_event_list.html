@@ -1,11 +1,11 @@
 {% extends "otree_tools/BaseToolsAdmin.html" %}
 
 {% block title %}
-Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %}</code>  tag)
+Exit events
 {% endblock %}
 
 {% block content %}
-{%  if focusevents %}
+{%  if exitevents %}
 <table class="table table-hover table-striped table-resonsive">
     <thead>
     <th>Session code</th>
@@ -17,16 +17,16 @@ Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %
     <th>Event type</th>
     </thead>
     <tbody>
-    {% for s in focusevents %}
+    {% for s in exitevents %}
     <tr>
 
-        <td>{{ s.participant.session.code}}</td>
-        <td>{{ s.participant.code}}</td>
-        <td>{{ s.app_name}}</td>
-        <td>{{ s.player.round_number}}</td>
-        <td>{{ s.page_name }}</td>
+        <td>{{ s.enter_event.participant.session.code}}</td>
+        <td>{{ s.enter_event.participant.code}}</td>
+        <td>{{ s.enter_event.app_name}}</td>
+        <td>{{ s.enter_event.player.round_number}}</td>
+        <td>{{ s.enter_event.page_name }}</td>
         <td>{{ s.timestamp|date:'Y-m-d H:i:s.u'}}</td>
-        <td>{{ s.event_desc_type}}</td>
+        <td>{{ s.get_exit_type_display}}</td>
 
     </tr>
     {% endfor %}
@@ -34,8 +34,7 @@ Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %
 </table>
 {% include 'otree_tools/includes/pagination_footer.html' %}
 {% else %}
-No information about focus events is available. If you want to track whether and when a user leaves the page, insert
-<code>{% verbatim %} {%&nbsp;tracking_focus&nbsp;%} {% endverbatim %}</code> to a corresponding template.
+No information about exit events is available.
 {% endif %}
 {% endblock %}
 

@@ -112,7 +112,7 @@ class ExitEventList(PaginatedListView):
     url_name = 'exit_events'
     url_pattern = r'^exit_events/$'
     display_name = 'Exit events only [otree-tools]'
-    context_object_name = 'focusevents'
+    context_object_name = 'exitevents'
     queryset = ExitEvent.objects.all()
     paginate_by = 50
     navbar_active_tag = 'enter'
