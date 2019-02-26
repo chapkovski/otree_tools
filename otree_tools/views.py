@@ -95,6 +95,29 @@ class FocusEventList(PaginatedListView):
     export_link_name = 'streaming_focus_csv'
 
 
+class EnterEventList(PaginatedListView):
+    template_name = 'otree_tools/enter_event_list.html'
+    url_name = 'enter_events'
+    url_pattern = r'^enter_events/$'
+    display_name = 'Enter events only [otree-tools]'
+    context_object_name = 'enterevents'
+    queryset = EnterEvent.objects.all()
+    paginate_by = 50
+    navbar_active_tag = 'focus'
+    # export_link_name = 'streaming_focus_csv'
+
+
+class ExitEventList(PaginatedListView):
+    template_name = 'otree_tools/exit_event_list.html'
+    url_name = 'exit_events'
+    url_pattern = r'^exit_events/$'
+    display_name = 'Exit events only [otree-tools]'
+    context_object_name = 'focusevents'
+    queryset = ExitEvent.objects.all()
+    paginate_by = 50
+    navbar_active_tag = 'enter'
+    # export_link_name = 'streaming_focus_csv'
+
 class Echo:
     def write(self, value):
         return value
