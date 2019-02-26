@@ -1,0 +1,81 @@
+{% extends "otree_tools/BaseToolsAdmin.html" %}
+
+{% block title %}
+Export data from sessions
+{% endblock %}
+
+{% block content %}
+{%  if sessions %}
+<table class="table table-hover table-striped table-resonsive">
+    <colgroup>
+        <col span="3">
+        <col span="3" class="info">
+        <col span="2" class="success">
+    </colgroup>
+    <thead>
+    <tr>
+        <th scope="col" style="text-success">Session code</th>
+        <th>Config name</th>
+        <th>N. participants</th>
+        <th colspan="3" class="text-center">Download</th>
+
+        <th colspan="2" class="text-center">Participant.vars</th>
+    </tr>
+
+    </thead>
+    <tbody>
+    {% for s in sessions %}
+    <tr>
+        <td>{{ s.code }}</td>
+        <td>{{ s.config.display_name }}</td>
+        <td>{{ s.num_participants }}</td>
+        <td class="text-center"><a href="{% url 'session_data'  session_code=s.code filetype='xlsx' %}?xlsx=1">.xlsx</a>
+        </td>
+        <td><a href="{% url 'session_data'  session_code=s.code filetype='csv' %}">.csv</a></td>
+        <td><a href="{% url 'download_json'  session_code=s.code  %}">.json</a></td>
+        <td class="text-center"><a href="{% url 'pvars_list'  pk=s.pk  %}">View</a></td>
+        <td class="text-center"><a href="{% url 'pvars_csv_export'  pk=s.pk  %}">.csv</a></td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% include 'otree_tools/includes/pagination_footer.html' %}
+{% else %}
+No sessions have taken place yet.
+{% endif %}
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+<style>
+    .red {
+        color: red
+    }
+
+    .green {
+        color: green
+    }
+
+    colgroup col.success {
+        background-color: #dff0d8;
+    }
+
+    colgroup col.error {
+        background-color: #f2dede;
+    }
+
+    colgroup col.warning {
+        background-color: #fcf8e3;
+    }
+
+    colgroup col.info {
+        background-color: #d9edf7;
+    }
+
+</style>
+{% endblock %}
+
+{% block internal_scripts %}
+{{ block.super }}
+{% endblock %}

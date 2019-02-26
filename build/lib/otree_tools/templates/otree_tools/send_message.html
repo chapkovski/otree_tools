@@ -1,0 +1,26 @@
+{% extends "otree/BaseAdmin.html" %}
+{% load staticfiles  %}
+{% block title %}
+Send message to the worker {{worker_id}}
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    {% if mturk_errors %}
+        <div class="alert alert-danger">{{mturk_errors}}</div>
+    {% else %}
+        {{ form.as_p }}
+    {% endif %}
+    <a href="{% url 'assignments_list' assignment.HITId %}" class="btn btn-default btn-lg active" role="button">Cancel</a>
+    <button type="submit" class="btn btn-success btn-lg ">Send message</button>
+</form>
+
+
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+
+{% endblock %}

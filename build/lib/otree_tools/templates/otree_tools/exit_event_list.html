@@ -1,0 +1,53 @@
+{% extends "otree_tools/BaseToolsAdmin.html" %}
+
+{% block title %}
+Focus events (<code>{% verbatim %}{%&nbsp;tracking_focus&nbsp;%}{% endverbatim %}</code>  tag)
+{% endblock %}
+
+{% block content %}
+{%  if focusevents %}
+<table class="table table-hover table-striped table-resonsive">
+    <thead>
+    <th>Session code</th>
+    <th>Participant code</th>
+    <th>App name</th>
+    <th>Round number</th>
+    <th>Page name</th>
+    <th>Timestamp</th>
+    <th>Event type</th>
+    </thead>
+    <tbody>
+    {% for s in focusevents %}
+    <tr>
+
+        <td>{{ s.participant.session.code}}</td>
+        <td>{{ s.participant.code}}</td>
+        <td>{{ s.app_name}}</td>
+        <td>{{ s.player.round_number}}</td>
+        <td>{{ s.page_name }}</td>
+        <td>{{ s.timestamp|date:'Y-m-d H:i:s.u'}}</td>
+        <td>{{ s.event_desc_type}}</td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% include 'otree_tools/includes/pagination_footer.html' %}
+{% else %}
+No information about focus events is available. If you want to track whether and when a user leaves the page, insert
+<code>{% verbatim %} {%&nbsp;tracking_focus&nbsp;%} {% endverbatim %}</code> to a corresponding template.
+{% endif %}
+{% endblock %}
+
+{% block internal_styles %}
+{{ block.super }}
+<style>
+    .red {
+        color: red
+    }
+
+    .green {
+        color: green
+    }
+</style>
+{% endblock %}

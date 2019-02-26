@@ -1,0 +1,25 @@
+{% for widget in widget.subwidgets %}
+    <div class="form-group">
+        {% include widget.template_name %}
+    </div>
+{% endfor %}
+<script>
+    {#    TODO: put js to media of widget #}
+
+    $("input[name={{ widget.name }}_0]").change(function () {
+        var other_text_input_name = "{{ widget.name }}_1";
+        var $other_text_input_el = $("input[name=" + other_text_input_name + "]");
+        if ($(this).val() == "{{other_val}}") {
+            $other_text_input_el.show();
+        }
+        else {
+            $other_text_input_el.hide();
+        }
+    });
+</script>
+<style>
+    #id_{{ widget.name }}_1 {
+{#        color: {{ widget.show_other }};#}
+        display: {% if widget.show_other_inbox|default:False %}block{% else %}none{% endif %};
+    }
+</style>

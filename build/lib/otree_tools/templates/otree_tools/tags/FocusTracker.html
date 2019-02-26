@@ -1,0 +1,59 @@
+{% load static  %}
+{# todo: build type_correspondence in non hardcoded way #}
+<script>
+
+    var type_correspondence = {{type_correspondence | safe}};
+    var initial_state_for_msg, initial_state_timestamp;
+    document.addEventListener("DOMContentLoaded", function () {
+        initial_state_for_msg = 0;
+        initial_state_timestamp = new Date().getTime();
+    });
+
+    $(function () {
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
+        var socket = new ReconnectingWebSocket(ws_path);
+
+        function sendingEvent(event_num_type, timestamp) {
+            var event_desc_type = type_correspondence[event_num_type];
+            var msg = JSON.stringify({
+                'event_desc_type': event_desc_type,
+                'event_num_type': event_num_type,
+                'timestamp': timestamp,
+            });
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(msg));
+            }
+            ;
+        };
+        socket.onopen = function (event) {
+            console.log('connected to oTree');
+
+            sendingEvent(initial_state_for_msg, initial_state_timestamp);
+
+        };
+
+        document.addEventListener("visibilitychange", function () {
+            var vis_status = document.hidden ? 1 : 3;
+            sendingEvent(vis_status, new Date().getTime());
+
+        })
+
+
+        window.addEventListener('focus', function () {
+            sendingEvent(4, new Date().getTime());
+
+        });
+
+        window.addEventListener('blur', function () {
+            sendingEvent(2, new Date().getTime());
+        });
+        $('form#form').on('submit', function () {
+            submittingformtime = new Date().getTime();
+            sendingEvent(5, submittingformtime);
+        });
+
+    })
+    ;
+</script>
+
