@@ -25,4 +25,6 @@ urlpatterns = [url(v.ListPVarsView.url_pattern, v.ListPVarsView.as_view(),
                    name=v.EnterEventList.url_name),
                url(v.ExitEventList.url_pattern, v.ExitEventList.as_view(),
                    name=v.ExitEventList.url_name),
+               url(v.EnterOnlyCSV.url_pattern, v.EnterOnlyCSV.as_view(),
+                   name=v.EnterOnlyCSV.url_name),
                ]
