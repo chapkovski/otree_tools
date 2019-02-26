@@ -44,14 +44,14 @@ class EnterExitMixin:
             timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
                                        output_field=DurationField())
         )
-        # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
-
-        for i in tot_enter_events:
-            # for some weird reasons some random time diffs are not calculated at all (like None).
-            if i.timediff is None:
-                i.timediff = i.early_exits - i.timestamp
-
-            i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
+        # # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
+        #
+        # for i in tot_enter_events:
+        #     # for some weird reasons some random time diffs are not calculated at all (like None).
+        #     if i.timediff is None:
+        #         i.timediff = i.early_exits - i.timestamp
+        #
+        #     i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
 
         return tot_enter_events
 
@@ -164,7 +164,8 @@ class StreamingEnterCSV(EnterExitMixin, StreamingCSVExport):
                 'entrance_timestamp': item.timestamp,
                 'exit_timestamp': item.early_exits,
                 'duration': item.timediff,
-                'exit_type': item.exittype}
+                # 'exit_type': item.exittype
+                }
 
 
 # END OF TIME STAMPS BLOCK
