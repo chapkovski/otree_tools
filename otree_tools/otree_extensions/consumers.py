@@ -4,7 +4,7 @@ from datetime import datetime
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
-from otree_tools.models import EnterEvent, FocusEvent, Marker
+from otree_tools.models import EnterEvent, FocusEvent
 from otree.models_concrete import ParticipantToPlayerLookup
 from django.utils import timezone
 
@@ -78,13 +78,7 @@ class TimeTracker(GeneralTracker):
         # TODO:===========
         participant, app_name, player = self.get_player_and_app()
         now = timezone.now()
-        marker, created = Marker.objects.get_or_create(page_name=self.page_name,
-                                                       participant=self.get_participant(),
-                                                       player_id=player.id,
-                                                       app_name=app_name,
-                                                       defaults={'timestamp': now,
-                                                                 'active': True,
-                                                                 'player': player})
+
         # TODO:===========
         print('Client connected to time tracker... TEST')
 
@@ -98,10 +92,10 @@ class TimeTracker(GeneralTracker):
                   'participant': self.get_participant(),
                   'player_id': player.id,
                   'app_name': app_name, }
-        markers = Marker.objects.filter(**params)
-        if markers.exists():
-            markers.update(active=False)
-        # TODO:===========
+        # markers = Marker.objects.filter(**params)
+        # if markers.exists():
+        #     markers.update(active=False)
+        # # TODO:===========
         if latest_entry is not None:
             latest_entry.exits.create(timestamp=datetime.now(),
                                       exit_type=2)

@@ -1,5 +1,5 @@
 from otree.models_concrete import PageCompletion
-from otree_tools.models import EnterEvent, FocusEvent, Marker
+from otree_tools.models import EnterEvent, FocusEvent
 from django.db.models import Count, Min, Sum, Q, ExpressionWrapper, F, DurationField
 from datetime import timedelta
 import errno
@@ -45,17 +45,17 @@ def get_time_per_page(player, page_name, none_to_zero=False):
     # TODO: ====================
     else:
         params = {'player_id': player.pk, 'participant': player.participant, 'page_name': page_name}
-        if Marker.objects.filter(**params).exists():
-            m = Marker.objects.get(**params)
-            now = timezone.now()
-            diff = now - m.timestamp
-            return diff.total_seconds()
-        else:
-            if none_to_zero:
-                return 0
-            else:
-                return None
-                # TODO: ====================
+        # if Marker.objects.filter(**params).exists():
+        #     m = Marker.objects.get(**params)
+        #     now = timezone.now()
+        #     diff = now - m.timestamp
+        #     return diff.total_seconds()
+        # else:
+        #     if none_to_zero:
+        #         return 0
+        #     else:
+        #         return None
+        #         # TODO: ====================
 
 
 def _aggregate_focus_time(player, page_name, focus_on=True):
