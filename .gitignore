@@ -7,9 +7,10 @@ staticfiles
 *.sqlite3
 _coverage_results/
 otree_tools.egg-info/
-dist/*.gz
+dist/
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 
+/dist/

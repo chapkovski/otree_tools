@@ -56,7 +56,8 @@ class GeneralEvent(models.Model):
     player = GenericForeignKey('content_type', 'player_id')
     timestamp = models.DateTimeField()
 
-
+class Marker(GeneralEvent):
+    active = models.BooleanField(default=True)
 
 class EnterEvent(GeneralEvent):
     class Meta(GeneralEvent.Meta):
