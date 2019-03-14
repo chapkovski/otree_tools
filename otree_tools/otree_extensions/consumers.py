@@ -7,8 +7,9 @@ from otree.models import Participant
 from otree.models_concrete import ParticipantToPlayerLookup
 import logging
 from utils import cp
-from django.db import transaction
+from otree_tools.prepare_export_data import make_file
 from django.db.utils import IntegrityError
+from django.template.loader import render_to_string
 
 logger = logging.getLogger('otree_tools.consumers')
 
@@ -58,6 +59,7 @@ class GeneralTracker(JsonWebsocketConsumer):
 
 
 class TimeTracker(GeneralTracker):
+    # TODO: deal with page unloaded registered BEFORE form submitted
     url_pattern = (r'^/timetracker/' + GeneralTracker.tracker_url_kwargs)
 
     def receive(self, content, **kwargs):
@@ -130,3 +132,26 @@ class FocusTracker(GeneralTracker):
 
     def connect(self, message, **kwargs):
         print('Client connected to focus tracker...')
+
+
+class ExportTracker(JsonWebsocketConsumer):
+    url_pattern = (r'^/exporttracker/(?P<inner_group_id>.*)$')
+    progress_block_name = 'tester/includes/progress_block.html'
+
+    def connection_groups(self, **kwargs):
+        return [self.kwargs['inner_group_id']]
+
+    def receive(self, content, **kwargs):
+        raw_content = json.loads(content)
+        request = raw_content['request']
+        if request == 'export':
+            msg = {'button': render_to_string(self.progress_block_name, {})}
+            self.send(msg)
+            make_file(channel_to_response=self.kwargs['inner_group_id'])
+
+    def connect(self, message, **kwargs):
+        print('Client connected to export tracker...')
+
+    def disconnect(self, message, **kwargs):
+        print('Client disconnected from export tracker...')
+#

@@ -26,10 +26,9 @@
             sendingEvent('exit', unloadingwindowtime, 1);
         });
         $('form#form').on('submit', function () {
+            $(window).unbind('beforeunload');
             submittingformtime = new Date().getTime();
             sendingEvent('exit', submittingformtime, 0);
-
-
         });
 
         socket.onopen = function (event) {

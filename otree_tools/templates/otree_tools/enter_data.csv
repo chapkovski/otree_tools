@@ -1,4 +1,0 @@
-"Session code","Participant code","App name","Round number","Page name","Entrance timestamp"
-{% for s in enterevents%}
-	{{ s.participant.session.code}},{{ s.participant.code}},{{ s.app_name}},{{ s.player.round_number}},{{ s.page_name }},{{ s.timestamp|date:'Y-m-d H:i:s.u'}}
-{% endfor %}

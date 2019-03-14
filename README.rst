@@ -103,3 +103,5 @@ streaming export of time and focus trackers; issue with time tracker events is s
 0.3.15b: adding marker for time tracker
 
 0.3.16b: fixing low db data retrieval in time tracker
+
+1.0.0: Huge reshuffle of time tracker.

@@ -1,20 +1,17 @@
 import vanilla
-# from botocore.exceptions import NoCredentialsError, EndpointConnectionError
-from django.db.models import Count, Min, OuterRef, Subquery
 from django.db.models import ExpressionWrapper, F, DurationField
-from django.shortcuts import render
-from django.views.generic import ListView, TemplateView
+
+from django.views.generic import ListView, TemplateView, View
 from otree.models import Session, Participant
 from otree.views.export import get_export_response
 # BLOCK FOR MTURK HITS
 from otree.views.mturk import get_mturk_client
-from otree_tools.models import EnterEvent, ExitEvent, FocusEvent
+from otree_tools.models import Exit, FocusEvent
 import json
 from django.http import HttpResponse, StreamingHttpResponse
 from .export import export_wide
-from django.template import loader
 import csv
-from datetime import timedelta
+import os
 from django.core.urlresolvers import reverse
 from . import __version__ as otree_tools_version
 
@@ -29,31 +26,15 @@ from . import __version__ as otree_tools_version
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
 class EnterExitMixin:
     def get_queryset(self):
-        # when we request num_exits>0 we get only those enter events which have some corresponding
-        # exit events. we should sort them based on their exit type because form is submitted before or at the
-        # same time as page is unloaded etc.
-        earliest_exit = ExitEvent.objects.filter(enter_event=OuterRef('pk')).order_by('exit_type', 'timestamp')
-        subquery_earliest = Subquery(earliest_exit.values('pk')[:1])
-
-        tot_enter_events = EnterEvent.objects. \
-            annotate(num_exits=Count('exits')). \
-            filter(num_exits__gt=0). \
-            annotate(
-            early_exits=Min('exits__timestamp'),
-            early_exit_pk=subquery_earliest,
-            timediff=ExpressionWrapper(F('early_exits') - F('timestamp'),
-                                       output_field=DurationField())
-        )
-        # TODO: later on think about efficiency of looping through all foo_display and replace exittype to
-
-        for i in tot_enter_events:
-            # for some weird reasons some random time diffs are not calculated at all (like None).
-            if i.timediff is None:
-                i.timediff = i.early_exits - i.timestamp
-
-            i.exittype = ExitEvent.objects.get(pk=i.early_exit_pk).get_exit_type_display()
-
-        return tot_enter_events
+        # TODO: group by page name?
+        tot_exits = Exit.objects.filter(
+            enter__isnull=False,
+        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                          output_field=DurationField()))
+        for i in tot_exits:
+            if i.diff is None:
+                i.diff = i.timestamp - i.enter.timestamp
+        return tot_exits
 
 
 class PaginatedListView(ListView):
@@ -80,7 +61,6 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
     context_object_name = 'timestamps'
     paginate_by = 50
     navbar_active_tag = 'time'
-    export_link_name = 'enterexit_csv_export'
 
 
 class FocusEventList(PaginatedListView):
@@ -95,28 +75,23 @@ class FocusEventList(PaginatedListView):
     export_link_name = 'streaming_focus_csv'
 
 
-class Echo:
-    def write(self, value):
-        return value
-
-
-class StreamingCSVExport(ListView):
-    response_class = StreamingHttpResponse
+class StreamingCSVExport(View):
+    url_name = 'export_time'
+    url_pattern = r'^export_time(?P<innerurl>.*)/$'
     content_type = 'text/csv'
-
-    def iter_items(self, items, pseudo_buffer):
-        writer = csv.DictWriter(pseudo_buffer, fieldnames=self.get_headers())
-        yield writer.writerow(dict((fn, fn) for fn in self.get_headers()))
-
-        for item in items:
-            yield writer.writerow(self.get_data(item))
+    filename = 'time_data.csv'
 
     def get(self, request, *args, **kwargs):
-        response = StreamingHttpResponse(
-            streaming_content=(self.iter_items(self.get_queryset(), Echo())),
-            content_type='text/csv',
-        )
-        response['Content-Disposition'] = 'attachment;filename={}'.format(self.filename)
+        file_path = kwargs.get('innerurl')
+        fsock = open(file_path, "r")
+        response = HttpResponse(fsock, content_type=self.content_type)
+        response['Content-Disposition'] = f'attachment; filename="{self.filename}"'
+        fsock.close()
+        try:
+            os.remove(file_path)
+        except FileNotFoundError:
+            pass
+            # TODO logger.warning('temp file not found')
         return response
 
 
@@ -143,28 +118,6 @@ class StreamingFocusCSV(StreamingCSVExport):
                 'page_name': item.page_name,
                 'timestamp': item.timestamp,
                 'event_desc_type': item.event_desc_type}
-
-
-class StreamingEnterCSV(EnterExitMixin, StreamingCSVExport):
-    url_name = 'enterexit_csv_export'
-    url_pattern = r'^enterexit_csv_export/$'
-    filename = 'enter_exit_data.csv'
-
-    def get_headers(self):
-        return ['session_code', 'participant_code', 'app_name', 'round_number', 'page_name',
-                'entrance_timestamp', 'exit_timestamp', 'duration', 'exit_type'
-                ]
-
-    def get_data(self, item):
-        return {'session_code': item.participant.session.code,
-                'participant_code': item.participant.code,
-                'app_name': item.app_name,
-                'round_number': item.player.round_number,
-                'page_name': item.page_name,
-                'entrance_timestamp': item.timestamp,
-                'exit_timestamp': item.early_exits,
-                'duration': item.timediff,
-                'exit_type': item.exittype}
 
 
 # END OF TIME STAMPS BLOCK
@@ -292,8 +245,8 @@ class PVarsCSVExport(PVarsMixin, TemplateView):
 
 def check_if_deletable(h):
     if (h['HITStatus'] == 'Reviewable' and
-                    h['NumberOfAssignmentsCompleted'] +
-                    h['NumberOfAssignmentsAvailable'] == h['MaxAssignments']):
+            h['NumberOfAssignmentsCompleted'] +
+            h['NumberOfAssignmentsAvailable'] == h['MaxAssignments']):
         h['Deletable'] = True
     return h
 
