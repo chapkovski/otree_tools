@@ -8,12 +8,10 @@
         initial_state_for_msg = 0;
         initial_state_timestamp = new Date().getTime();
     });
-
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
+    var socket = new WebSocket(ws_path);
     $(function () {
-        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/focustracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
-        var socket = new ReconnectingWebSocket(ws_path);
-
         function sendingEvent(event_num_type, timestamp) {
             var event_desc_type = type_correspondence[event_num_type];
             var msg = JSON.stringify({

@@ -1,12 +1,26 @@
 import json
 from datetime import datetime
-
+from otree_tools.models import Enter, Exit
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
-from otree_tools.models import EnterEvent, FocusEvent, Marker
 from otree.models_concrete import ParticipantToPlayerLookup
-from django.utils import timezone
+import logging
+from utils import cp
+from django.db import transaction
+from django.db.utils import IntegrityError
+
+logger = logging.getLogger('otree_tools.consumers')
+
+"""
+Export of timing objects is relatively slow thing.
+We should check whether redis is available - if yes, we can try to use hyeu to create a task that will call
+initiate downloading as soon as the file is ready.
+
+An alternative solution would be to send a signal to database, and start preparing file. 
+as soon as it is ready the signal is sent back, which allows to download it.
+A
+"""
 
 
 class GeneralTracker(JsonWebsocketConsumer):
@@ -39,75 +53,61 @@ class GeneralTracker(JsonWebsocketConsumer):
                 return participant, app_name, player
 
             except ParticipantToPlayerLookup.DoesNotExist:
-                ...
+                logger.error('Cannot find participant for this page!')
         return empty_ret
 
 
 class TimeTracker(GeneralTracker):
     url_pattern = (r'^/timetracker/' + GeneralTracker.tracker_url_kwargs)
 
-    def get_unclosed_enter_event(self):
-        p = self.get_participant()
-        o = EnterEvent.opened.filter(participant=p)
-        if o.exists():
-            return o.latest()
-
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
         raw_time = raw_content['timestamp']
         timestamp = datetime.fromtimestamp(raw_time / 1000)
         event_type = raw_content['eventtype']
+        participant, app_name, player = self.get_player_and_app()
+        filter_params = {'page_name': self.page_name,
+                         'participant': participant, 'app_name': app_name, }
+        general_params = {**filter_params,
+                          'player': player,
+                          'timestamp': timestamp}
         if event_type == 'enter':
-            participant, app_name, player = self.get_player_and_app()
             if participant is not None:
-                EnterEvent.opened.close_all(participant, self.page_name, )
-
-                participant.otree_tools_enterevent_events.create(page_name=self.page_name,
-                                                                 timestamp=timestamp,
-                                                                 player=player,
-                                                                 app_name=app_name)
+                Enter.objects.create(**general_params)
 
         if event_type == 'exit':
-            exit_type = int(raw_content['exittype'])
-            latest_entry = self.get_unclosed_enter_event()
-            if latest_entry is not None:
-                latest_entry.exits.create(timestamp=timestamp,
-                                          exit_type=exit_type)
+            if participant is not None:
+                exit_type = int(raw_content['exittype'])
+                try:
+                    enter = Enter.objects.filter(**filter_params,
+                                                 timestamp__lte=timestamp,
+                                                 player_id=player.pk,
+                                                 exit__isnull=True).latest()
+                except Enter.DoesNotExist:
+                    enter = None
+
+                try:
+                    e = Exit(**general_params,
+                             exit_type=exit_type,
+                             enter=enter
+                             )
+                    e.save()
+                except IntegrityError:
+                    enter = None
+                    e = Exit(**general_params,
+                             exit_type=exit_type,
+                             enter=enter
+                             )
+                    e.save()
 
     def connect(self, message, **kwargs):
-        # TODO:===========
-        participant, app_name, player = self.get_player_and_app()
-        now = timezone.now()
-        marker, created = Marker.objects.get_or_create(page_name=self.page_name,
-                                                       participant=self.get_participant(),
-                                                       player_id=player.id,
-                                                       app_name=app_name,
-                                                       defaults={'timestamp': now,
-                                                                 'active': True,
-                                                                 'player': player})
-        # TODO:===========
         print('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
-        participant = self.get_participant()
-        latest_entry = self.get_unclosed_enter_event()
-        # TODO:===========
-        participant, app_name, player = self.get_player_and_app()
-        now = timezone.now()
-        params = {'page_name': self.page_name,
-                  'participant': self.get_participant(),
-                  'player_id': player.id,
-                  'app_name': app_name, }
-        markers= Marker.objects.filter(**params)
-        if markers.exists():
-            markers.update(active=False)
-        # TODO:===========
-        if latest_entry is not None:
-            latest_entry.exits.create(timestamp=datetime.now(),
-                                      exit_type=2)
+        print('Client disconnected from time tracker...')
 
-            EnterEvent.opened.close_all(participant, self.page_name)
 
+#
 
 class FocusTracker(GeneralTracker):
     url_pattern = (r'^/focustracker/' + GeneralTracker.tracker_url_kwargs)

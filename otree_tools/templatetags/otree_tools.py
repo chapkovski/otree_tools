@@ -16,10 +16,10 @@ tracking_time_code, tracking_focus_code = 'xBl4fTBP8hAsg61o1gJa', 'Q4YviMPgcVUjb
 def universal_tracker(context, tagname):
     context['page_index'] = context['view']._index_in_pages
     context['page_name'] = context['view'].__class__.__name__
-    code = globals()['{}_code'.format(tagname)]
+    code = globals()[f'{tagname}_code']
     if code in context:
         formatted_tag_name = '{{% {} %}}'.format(tagname)
-        raise Exception('{} is already used'.format(formatted_tag_name))
+        raise Exception(f'{formatted_tag_name} is already used')
     context[code] = True
     return context
 

@@ -1,26 +1,11 @@
 from otree.models_concrete import PageCompletion
-from otree_tools.models import EnterEvent, FocusEvent, Marker
-from django.db.models import Count, Min, Sum, Q, ExpressionWrapper, F, DurationField
+from otree_tools.models import Enter, Exit, FocusEvent
 from datetime import timedelta
-import errno
-import shutil
 import logging
-from django.utils import timezone
+from django.db.models import F, ExpressionWrapper, DurationField
+from utils import cp
 
-
-def copy(src, dest):
-    try:
-        shutil.copytree(src, dest)
-        return True
-    except OSError as e:
-        # If the error was caused because the source wasn't a directory
-        if e.errno == errno.ENOTDIR:
-            shutil.copy(src, dest)
-            return True
-        else:
-            logger = logging.getLogger('otree-tools')
-            logger.error('Directory not copied. Error: {}'.format(e))
-            return False
+logger = logging.getLogger('otree_tools.time.utils')
 
 
 def get_seconds_per_page(player, page_name, ):
@@ -34,28 +19,19 @@ def get_seconds_per_page(player, page_name, ):
     return page_info.seconds_on_page
 
 
-def get_time_per_page(player, page_name, none_to_zero=False):
-    tot_enter_events = EnterEvent.objects.filter(player_id=player.pk, participant=player.participant,
-                                                 page_name=page_name
-                                                 ).annotate(num_exits=Count('exits')).filter(num_exits__gt=0)
-    if tot_enter_events.exists():
-        b = tot_enter_events.annotate(early_exits=Min('exits__timestamp'))
-        sum_diff = sum([e.early_exits - e.timestamp for e in b], timedelta())
-        return sum_diff.total_seconds()
-    # TODO: ====================
-    else:
-        params = {'player_id': player.pk, 'participant': player.participant, 'page_name': page_name}
-        if Marker.objects.filter(**params).exists():
-            m = Marker.objects.get(**params)
-            now = timezone.now()
-            diff = now - m.timestamp
-            return diff.total_seconds()
-        else:
-            if none_to_zero:
-                return 0
-            else:
-                return None
-                # TODO: ====================
+def get_time_per_page(player, page_name):
+    """Returns time per page as measured by tracking_time tag on a corresponding page."""
+
+    tot_exits = Exit.objects.filter(player_id=player.pk,
+                                    participant=player.participant,
+                                    page_name=page_name,
+                                    enter__isnull=False,
+                                    ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                                                      output_field=DurationField()))
+    if tot_exits.exists():
+        vs = tot_exits.values_list('diff', flat=True)
+        vs = [v for v in vs if v is not None]
+        return sum(vs, timedelta())
 
 
 def _aggregate_focus_time(player, page_name, focus_on=True):
