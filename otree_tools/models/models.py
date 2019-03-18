@@ -8,7 +8,7 @@ EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnect
 FOCUS_EVENT_TYPES = (
     (0, 'Page shown'), (1, 'Visibility: off'), (2, 'Focus: off'), (3, 'Visibility: on'), (4, 'Focus: on'),
     (5, 'Form submitted'))
-
+WAITFORIMAGES_CHOICES = [(False, 'Before images are loaded'), (True, 'After images are loaded')]
 """
 There are 3 different scenarios how a client may exit the page.
 1. He can submit the form by clicking next (or in oTree any other button because the entire page
@@ -53,6 +53,8 @@ class GeneralEvent(models.Model):
 
 
 class Enter(GeneralEvent):
+    wait_for_images = models.BooleanField(choices=WAITFORIMAGES_CHOICES, default=True)
+
     def __str__(self):
         return f'id: {self.pk}, Enter: {self.page_name}; time: {self.timestamp}'
 

@@ -67,15 +67,18 @@ class TimeTracker(GeneralTracker):
         raw_time = raw_content['timestamp']
         timestamp = datetime.fromtimestamp(raw_time / 1000)
         event_type = raw_content['eventtype']
+        wait_for_images = raw_content.get('wait_for_images', True)
         participant, app_name, player = self.get_player_and_app()
         filter_params = {'page_name': self.page_name,
-                         'participant': participant, 'app_name': app_name, }
+                         'participant': participant,
+                         'app_name': app_name, }
         general_params = {**filter_params,
                           'player': player,
                           'timestamp': timestamp}
         if event_type == 'enter':
             if participant is not None:
-                Enter.objects.create(**general_params)
+                Enter.objects.create(**general_params,
+                                     wait_for_images=wait_for_images)
 
         if event_type == 'exit':
             if participant is not None:

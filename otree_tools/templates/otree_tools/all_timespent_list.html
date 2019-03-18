@@ -20,6 +20,7 @@
             <th>Exit timestamp</th>
             <th>Duration</th>
             <th>Exit type</th>
+            <th>Enter:wait for images</th>
             </thead>
             <tbody>
             {% for s in timestamps %}
@@ -34,6 +35,7 @@
                     <td>{{ s.timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.diff }}</td>
                     <td>{{ s.get_exit_type_display }}</td>
+                <td>{{ s.enter.get_wait_for_images_display }}</td>
 
 
                 </tr>

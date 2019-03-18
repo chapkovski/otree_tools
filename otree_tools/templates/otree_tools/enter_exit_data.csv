@@ -1,4 +1,4 @@
-"Session code","Participant code","App name","Round number","Page name","Entrance timestamp","Exit timestamp","Duration","Exit type"
+"Session code","Participant code","App name","Round number","Page name","Entrance timestamp","Exit timestamp","Duration","Exit type","Enter:wait for images"
 {% for s in events%}
-	{{ s.participant.session.code}},{{ s.participant.code}},{{ s.app_name}},{{ s.player.round_number}},{{ s.page_name }},{{ s.enter.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.diff}},{{ s.get_exit_type_display}}
+	{{ s.participant.session.code}},{{ s.participant.code}},{{ s.app_name}},{{ s.player.round_number}},{{ s.page_name }},{{ s.enter.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.diff}},{{ s.get_exit_type_display}},{{ s.enter.get_wait_for_images_display }}
 {% endfor %}

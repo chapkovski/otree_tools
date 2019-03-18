@@ -1,7 +1,8 @@
 {% load static otree %}
 
 <script>
-    var before_images_loaded,
+    var wait_for_images ={{ wait_for_images|json }},
+        before_images_loaded,
         loadingwindowtime,
         unloadingwindowtime,
         submittingformtime;
@@ -21,7 +22,9 @@
                     }
                     return;
 
-                } else {
+                }
+                elsаe
+                {
                     waitForSocketConnection(socket, callback);
                 }
 
@@ -33,6 +36,7 @@
             'eventtype': event_type,
             'timestamp': timestamp,
             'exittype': exittype,
+            'wait_for_images': wait_for_images,
         });
         waitForSocketConnection(socket, function () {
             socket.send(JSON.stringify(msg));
