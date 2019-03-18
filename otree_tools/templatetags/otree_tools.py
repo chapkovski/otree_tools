@@ -25,7 +25,8 @@ def universal_tracker(context, tagname):
 
 
 @register.inclusion_tag('otree_tools/tags/TimeTracker.html', takes_context=True)
-def tracking_time(context, *args, **kwargs):
+def tracking_time(context, wait_for_images=True, *args, **kwargs):
+    context['wait_for_images'] = wait_for_images
     return universal_tracker(context, 'tracking_time')
 
 

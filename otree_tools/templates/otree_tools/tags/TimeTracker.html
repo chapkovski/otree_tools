@@ -1,25 +1,46 @@
 {% load static otree %}
 
 <script>
-    $(function () {
-        var loadingwindowtime = new Date(),
-            unloadingwindowtime = new Date(),
-            submittingformtime = new Date();
+    var before_images_loaded,
+        loadingwindowtime,
+        unloadingwindowtime,
+        submittingformtime;
 
-        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
-        var socket = new WebSocket(ws_path);
-        function sendingEvent(event_type, timestamp, exittype=null) {
-            var msg = JSON.stringify({
-                'eventtype': event_type,
-                'timestamp': timestamp,
-                'exittype': exittype,
-            });
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify(msg));
-            }
-            ;
-        }
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
+    var socket = new WebSocket(ws_path);
+
+    // Make the function wait until the connection is made...
+    // (from here: https://stackoverflow.com/questions/13546424/how-to-wait-for-a-websockets-readystate-to-change)
+    function waitForSocketConnection(socket, callback) {
+        setTimeout(
+            function () {
+                if (socket.readyState === 1) {
+                    if (callback != null) {
+                        callback();
+                    }
+                    return;
+
+                } else {
+                    waitForSocketConnection(socket, callback);
+                }
+
+            }, 5); // wait 5 milisecond for the connection...
+    }
+
+    function sendingEvent(event_type, timestamp, exittype=null) {
+        var msg = JSON.stringify({
+            'eventtype': event_type,
+            'timestamp': timestamp,
+            'exittype': exittype,
+        });
+        waitForSocketConnection(socket, function () {
+            socket.send(JSON.stringify(msg));
+        });
+    };
+
+    $(function () {
+
 
         $(window).on('beforeunload', function () {
             unloadingwindowtime = new Date().getTime();
@@ -33,11 +54,21 @@
 
         socket.onopen = function (event) {
             console.log('connected to oTree');
-            loadingwindowtime = new Date().getTime();
-            sendingEvent('enter', loadingwindowtime);
         };
 
     })
     ;
+    {% if wait_for_images|default_if_none:True %}
+        $(window).on("load", function () {
+            loadingwindowtime = new Date().getTime();
+            sendingEvent('enter', loadingwindowtime);
+        });
+    {% else %}
+        document.addEventListener("DOMContentLoaded", function (event) {
+            before_images_loaded = new Date().getTime();
+            sendingEvent('enter', before_images_loaded);
+        });
+    {% endif %}
+
 </script>
 
