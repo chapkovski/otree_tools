@@ -3,7 +3,6 @@ from otree_tools.models import Enter, Exit, FocusEvent
 from datetime import timedelta
 import logging
 from django.db.models import F, ExpressionWrapper, DurationField
-from utils import cp
 
 logger = logging.getLogger('otree_tools.time.utils')
 

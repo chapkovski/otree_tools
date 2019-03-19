@@ -3,7 +3,6 @@ import tempfile
 from django.urls import reverse
 from django.template.loader import render_to_string
 from channels import Group as ChannelGroup
-from utils import cp
 import json
 from django.db.models import DurationField, ExpressionWrapper, F
 

@@ -109,3 +109,5 @@ streaming export of time and focus trackers; issue with time tracker events is s
 1.0.1: Now `tracking_time` tag can optionally get a parameter `wait_for_images`. By default it is set to `True`.
         If it is set to `False` then we'll register time when the page is shown to the player, but before all images
         are loaded.
+
+1.0.2: Fixing cp issue

@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
 from otree.models_concrete import ParticipantToPlayerLookup
 import logging
-from utils import cp
+
 from otree_tools.prepare_export_data import make_file
 from django.db.utils import IntegrityError
 from django.template.loader import render_to_string
