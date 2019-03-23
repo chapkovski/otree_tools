@@ -26,12 +26,12 @@ def get_time_per_page(player, page_name):
                                     participant=player.participant,
                                     page_name=page_name,
                                     enter__isnull=False,
-                                    ).ФППКУ(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                                                      output_field=DurationField()))
-    if tot_exits.exists():
-        vs = tot_exits.values_list('diff', flat=True)
-        vs = [v for v in vs if v is not None]
-        return sum(vs, timedelta())
+                                    ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                                                           output_field=DurationField())))['diff']
+    if tot_exits:
+        return tot_exits
+    else:
+        return timedelta()
 
 
 def get_focus_tracker_data(player, page_name, focus_type):
