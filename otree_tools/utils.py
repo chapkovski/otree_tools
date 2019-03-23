@@ -34,23 +34,9 @@ def get_time_per_page(player, page_name):
         return timedelta()
 
 
-def get_focus_tracker_data(player, page_name, focus_type):
-    tot_exits = FocusEvent.objects.filter(player_id=player.pk,
-                                          participant=player.participant,
-                                          page_name=page_name,
-                                          entry__isnull=False,
-                                          event_num_type__in=focus_type,
-                                          ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
-                                                                                 output_field=DurationField())))['diff']
-    if tot_exits:
-        return tot_exits
-    else:
-        return timedelta()
-
-
 def get_focused_time(player, page_name):
-    return get_focus_tracker_data(player, page_name, focus_exit_codes)
+    return FocusEvent.objects.get_focused_time_per_page(player, page_name)
 
 
 def get_unfocused_time(player, page_name):
-    return get_focus_tracker_data(player, page_name, focus_enter_codes)
+    return FocusEvent.objects.get_unfocused_time_per_page(player, page_name)
