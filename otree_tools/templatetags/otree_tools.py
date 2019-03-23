@@ -33,7 +33,7 @@ def tracking_time(context, wait_for_images=True, *args, **kwargs):
 @register.inclusion_tag('otree_tools/tags/FocusTracker.html', takes_context=True, name='tracking_focus')
 def tracking_focus_func(context, *args, **kwargs):
     c = universal_tracker(context, 'tracking_focus')
-    c['type_correspondence'] = {i: j for i, j in FOCUS_EVENT_TYPES}
+    c['type_correspondence'] = dict(FOCUS_EVENT_TYPES)
     return c
 
 

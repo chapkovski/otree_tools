@@ -3,11 +3,15 @@ from otree.models import Participant
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from otree_tools import cp
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
-FOCUS_EVENT_TYPES = (
-    (0, 'Page shown'), (1, 'Visibility: off'), (2, 'Focus: off'), (3, 'Visibility: on'), (4, 'Focus: on'),
-    (5, 'Form submitted'))
+FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (3, 'Visibility: on'), (4, 'Focus: on'),]
+FOCUS_EXIT_EVENT_TYPES = [(1, 'Visibility: off'), (2, 'Focus: off'), (5, 'Form submitted'),]
+FOCUS_EVENT_TYPES = FOCUS_ENTER_EVENT_TYPES + FOCUS_EXIT_EVENT_TYPES
+focus_exit_codes = [i for i, j in FOCUS_EXIT_EVENT_TYPES]
+focus_enter_codes = [i for i, j in FOCUS_ENTER_EVENT_TYPES]
+
 WAITFORIMAGES_CHOICES = [(False, 'Before images are loaded'), (True, 'After images are loaded')]
 """
 There are 3 different scenarios how a client may exit the page.
@@ -71,3 +75,9 @@ class Exit(GeneralEvent):
 class FocusEvent(GeneralEvent):
     event_desc_type = models.CharField(max_length=1000)
     event_num_type = models.IntegerField(choices=FOCUS_EVENT_TYPES)
+    # we track focus events that have corresponding closuring focus event to
+    # correctly calculate focus on/focus off time
+    entry = models.OneToOneField(to='FocusEvent',
+                                 related_name='closure',
+                                 null=True,
+                                 )

@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from otree_tools.models import Enter, Exit
+from otree_tools.models import Enter, Exit, FocusEvent, focus_enter_codes, focus_exit_codes
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
@@ -117,25 +117,53 @@ class TimeTracker(GeneralTracker):
 class FocusTracker(GeneralTracker):
     url_pattern = (r'^/focustracker/' + GeneralTracker.tracker_url_kwargs)
 
+    def get_entry(self):
+        filter_params = {**self.filter_params,
+                         'timestamp__lte': self.timestamp,
+                         'player_id': self.player.pk,
+                         'closure__isnull': True
+                         }
+        if self.event_num_type in focus_enter_codes:
+            filter_params['event_num_type__in'] = focus_exit_codes
+
+        if self.event_num_type in focus_exit_codes:
+            filter_params['event_num_type__in'] = focus_enter_codes
+        entry = FocusEvent.objects.filter(**filter_params, )
+        if entry.exists():
+            entry = entry.latest()
+        else:
+            entry = None
+        return entry
+
+
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
         cp(raw_content)
         raw_time = raw_content['timestamp']
-        timestamp = datetime.fromtimestamp(raw_time / 1000)
-        event_num_type = raw_content['event_num_type']
+        self.timestamp = datetime.fromtimestamp(raw_time / 1000)
+        self.event_num_type = raw_content['event_num_type']
         event_desc_type = raw_content['event_desc_type']
-
-        participant, app_name, player = self.get_player_and_app()
+        participant, app_name, self.player = self.get_player_and_app()
+        self.filter_params = {'page_name': self.page_name,
+                              'participant': participant,
+                              'app_name': app_name, }
         if participant is not None:
-            participant.otree_tools_focusevent_events.create(page_name=self.page_name,
-                                                             timestamp=timestamp,
-                                                             player=player,
-                                                             app_name=app_name,
-                                                             event_desc_type=event_desc_type,
-                                                             event_num_type=event_num_type, )
+            entry = self.get_entry()
+            creating_params = {**self.filter_params,
+                               'timestamp': self.timestamp,
+                               'player': self.player,
+                               'event_desc_type': event_desc_type,
+                               "event_num_type": self.event_num_type,
+                               "entry": entry}
+            try:
+                FocusEvent.objects.create(**creating_params)
+            except IntegrityError:
+                creating_params['entry'] = None
+                FocusEvent.objects.create(**creating_params)
 
-    def connect(self, message, **kwargs):
-        print('Client connected to focus tracker...')
+
+def connect(self, message, **kwargs):
+    print('Client connected to focus tracker...')
 
 
 class ExportTracker(JsonWebsocketConsumer):

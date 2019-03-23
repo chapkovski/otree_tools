@@ -64,7 +64,8 @@
 
 
     $(function () {
-        $('form').on('submit', function () {
+        $('form#form').on('submit', function () {
+            console.log('submitting....');
             $(window).unbind('blur');
             $(window).unbind('visibilitychange');
             submittingformtime = new Date().getTime();
