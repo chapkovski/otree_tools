@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
 from otree.models_concrete import ParticipantToPlayerLookup
 import logging
-
+from otree_tools import cp
 from otree_tools.prepare_export_data import make_file
 from django.db.utils import IntegrityError
 from django.template.loader import render_to_string
@@ -119,6 +119,7 @@ class FocusTracker(GeneralTracker):
 
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
+        cp(raw_content)
         raw_time = raw_content['timestamp']
         timestamp = datetime.fromtimestamp(raw_time / 1000)
         event_num_type = raw_content['event_num_type']

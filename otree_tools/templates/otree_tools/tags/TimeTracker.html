@@ -7,13 +7,13 @@
         unloadingwindowtime,
         submittingformtime;
 
-    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    var ws_path = ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
-    var socket = new WebSocket(ws_path);
+    var time_tracker_ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var time_tracker_ws_path = time_tracker_ws_scheme + '://' + window.location.host + "/timetracker/{{ participant.code}}/{{page_name}}/{{page_index}}";
+    var time_tracker_socket = new WebSocket(time_tracker_ws_path);
 
     // Make the function wait until the connection is made...
     // (from here: https://stackoverflow.com/questions/13546424/how-to-wait-for-a-websockets-readystate-to-change)
-    function waitForSocketConnection(socket, callback) {
+    function WaitForSocketConnection(socket, callback) {
         setTimeout(
             function () {
                 if (socket.readyState === 1) {
@@ -22,55 +22,48 @@
                     }
                     return;
 
-                }
-                elsаe
-                {
-                    waitForSocketConnection(socket, callback);
+                } else {
+                    WaitForSocketConnection(socket, callback);
                 }
 
             }, 5); // wait 5 milisecond for the connection...
     }
 
-    function sendingEvent(event_type, timestamp, exittype=null) {
+    function time_tracker_sendingEvent(event_type, timestamp, exittype=null) {
         var msg = JSON.stringify({
             'eventtype': event_type,
             'timestamp': timestamp,
             'exittype': exittype,
             'wait_for_images': wait_for_images,
         });
-        waitForSocketConnection(socket, function () {
-            socket.send(JSON.stringify(msg));
+        WaitForSocketConnection(time_tracker_socket, function () {
+            time_tracker_socket.send(JSON.stringify(msg));
         });
     };
 
     $(function () {
-
-
         $(window).on('beforeunload', function () {
             unloadingwindowtime = new Date().getTime();
-            sendingEvent('exit', unloadingwindowtime, 1);
+            time_tracker_sendingEvent('exit', unloadingwindowtime, 1);
         });
         $('form#form').on('submit', function () {
             $(window).unbind('beforeunload');
             submittingformtime = new Date().getTime();
-            sendingEvent('exit', submittingformtime, 0);
+            time_tracker_sendingEvent('exit', submittingformtime, 0);
         });
 
-        socket.onopen = function (event) {
-            console.log('connected to oTree');
-        };
 
     })
     ;
     {% if wait_for_images|default_if_none:True %}
         $(window).on("load", function () {
             loadingwindowtime = new Date().getTime();
-            sendingEvent('enter', loadingwindowtime);
+            time_tracker_sendingEvent('enter', loadingwindowtime);
         });
     {% else %}
         document.addEventListener("DOMContentLoaded", function (event) {
             before_images_loaded = new Date().getTime();
-            sendingEvent('enter', before_images_loaded);
+            time_tracker_sendingEvent('enter', before_images_loaded);
         });
     {% endif %}
 
