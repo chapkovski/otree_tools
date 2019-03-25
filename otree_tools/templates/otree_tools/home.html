@@ -10,9 +10,8 @@ Welcome to <span class="textarea">otree-tools {{version}}</span>
     <a href="{% url 'individual_sessions_export' %}" class="list-group-item list-group-item-action">Export data from individual sessions (including
         <span class="textarea">participant.vars</span>)</a>
     <a href="{% url 'time_spent_timestamps' %}" class="list-group-item list-group-item-action">View and export data from time trackers</a>
-    <a href="{% url 'focus_events' %}" class="list-group-item list-group-item-action">View and export data from focus trackers</a>
-    <a href="#" class="list-group-item list-group-item-action disabled">Amazon mTurk management</a>
-    <a href="#" class="list-group-item list-group-item-action disabled">PayPal management</a>
+    <a href="{% url 'focus_events' %}" class="list-group-item list-group-item-action">Raw data from focus trackers</a>
+    <a href="{% url 'focus_per_page_report' %}" class="list-group-item list-group-item-action">Focused/unfocused time per page</a>
 </div>
 {% endblock %}
 

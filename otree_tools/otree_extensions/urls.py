@@ -8,8 +8,8 @@ views_to_add = [
     FocusEventList,
     FocusPerPageReport,
     EnterExitEventList,
-    StreamingCSVExport,
-    StreamingFocusCSV,
+    TempFileCSVExport,
+
     # Export views
     ListPVarsView,
     PVarsCSVExport,

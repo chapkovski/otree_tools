@@ -1,0 +1,4 @@
+"Session code","Participant code","App name","Round number","Page name","Focused time","Unfocused time"
+{% for s in events%}
+	{{ s.participant__session__code}},{{ s.participant__code }},{{ s.app_name}},{{ s.round_number}},{{ s.page_name }},{{ s.focused_time|default_if_none:0 }},{{ s.unfocused_time|default_if_none:0 }}
+{% endfor %}

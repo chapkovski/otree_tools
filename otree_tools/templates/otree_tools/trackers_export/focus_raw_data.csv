@@ -1,0 +1,4 @@
+"Session code","Participant code","App name","Round number","Page name","Timestamp","Event type"
+{% for s in events%}
+	{{ s.participant.session.code}},{{ s.participant.code}},{{ s.app_name}},{{ s.round_number}},{{ s.page_name }},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.event_desc_type }}
+{% endfor %}

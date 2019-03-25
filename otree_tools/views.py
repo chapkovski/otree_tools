@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 from otree.models import Session, Participant
 from otree.views.export import get_export_response
 
-from .models import Exit, FocusEvent
+from .models import Exit, FocusEvent, allowed_export_tracker_requests
 from .export import export_wide
 from . import __version__ as otree_tools_version
 
@@ -60,8 +60,8 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
 class TempFileCSVExport(View):
     """Receives a temp file name prepared in consumers, and returns it to a user.
     That is mostly for dealing with large files that can provoke server timeout errors."""
-    url_name = 'export_time'
-    url_pattern = r'^export_tracker_data/(?P<tracker_type>(time|focus))/(?P<temp_file_name>.*)/$'
+    url_name = 'export_tracker_data'
+    url_pattern = fr'^export_tracker_data/(?P<tracker_type>{allowed_export_tracker_requests})/(?P<temp_file_name>.*)/$'
     content_type = 'text/csv'
 
     def get(self, request, *args, **kwargs):
@@ -92,7 +92,7 @@ class FocusPerPageReport(PaginatedListView):
     context_object_name = 'focusevents'
     paginate_by = 50
     navbar_active_tag = 'focus'
-    export_link_name = 'streaming_focus_csv'
+
 
     def get_queryset(self):
         return FocusEvent.objects.get_per_page_report()
@@ -107,32 +107,6 @@ class FocusEventList(PaginatedListView):
     queryset = FocusEvent.objects.all()
     paginate_by = 50
     navbar_active_tag = 'focus'
-    export_link_name = 'streaming_focus_csv'
-
-
-class StreamingFocusCSV(StreamingCSVExport):
-    # todo: deal with coinciding time stamps of PageUnload and Form Submitted events
-    url_name = 'streaming_focus_csv'
-    url_pattern = r'^streaming_focusevent_csv_export/$'
-    filename = 'focus_data.csv'
-
-    def get_queryset(self):
-        return FocusEvent.objects.all()
-
-    def get_headers(self):
-        return ['session_code', 'participant_code', 'app_name', 'round_number', 'page_name', 'timestamp',
-                'event_desc_type', ]
-
-    def get_data(self, item):
-        #  unfortunately we can't make it more compact because reverse relations cannot be obtained with
-        # general relations (or at least im too lazy to figure out how
-        return {'session_code': item.participant.session.code,
-                'participant_code': item.participant.code,
-                'app_name': item.app_name,
-                'round_number': item.round_number,
-                'page_name': item.page_name,
-                'timestamp': item.timestamp,
-                'event_desc_type': item.event_desc_type}
 
 
 ############ END OF: FOCUS EVENTS EXPORT BLOCK #############################################################

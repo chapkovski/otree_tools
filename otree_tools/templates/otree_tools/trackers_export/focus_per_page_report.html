@@ -26,7 +26,7 @@
                     <td>{{ s.app_name }}</td>
                     <td>{{ s.round_number }}</td>
                     <td>{{ s.page_name }}</td>
-                    <td>{{ s.focused_time|default_if_none:0}}</td>
+                    <td>{{ s.focused_time|default_if_none:0 }}</td>
                     <td>{{ s.unfocused_time|default_if_none:0 }}</td>
                 </tr>
             {% endfor %}
@@ -42,10 +42,10 @@
 
 {% block internal_scripts %}
     {{ block.super }}
-{#    TODO #}
-{#    <script>#}
-{#        var go_to_url = "{% url 'export_tracker_data' innerurl='' %}";#}
-{#    </script>#}
-{#    <script src="{% static "otree_tools/js/export.js" %}"></script>#}
+
+    <script>
+        var tracker_type = 'focus_per_page';
+    </script>
+    <script src="{% static "otree_tools/js/export.js" %}"></script>
 {% endblock %}
 

@@ -1,56 +1,62 @@
 {% extends "otree/BaseAdmin.html" %}
-
+{% block head_title %}
+    oTree tools
+{% endblock %}
 {% block body_main %}
-{% with anbar=nbar|default:None %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top  fixed-top-2">
-    <a class="navbar-brand" href="{% url 'otree_tools_home' %}">oTree-tools</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+    {% with anbar=nbar|default:None %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top  fixed-top-2">
+            <a class="navbar-brand" href="{% url 'otree_tools_home' %}">oTree-tools</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto ">
-            <li class="nav-item {% if anbar == 'home' %}active{% endif %}">
-                <a class="nav-link" href="{% url 'otree_tools_home' %}">Home <span class="sr-only">(current)</span></a>
-            </li>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto ">
+                    <li class="nav-item {% if anbar == 'home' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'otree_tools_home' %}">Home <span
+                                class="sr-only">(current)</span></a>
+                    </li>
 
-            <li class="nav-item {% if anbar == 'export' %}active{% endif %}">
-                <a class="nav-link" href="{% url 'individual_sessions_export' %}">Export</a>
-            </li>
-            <li class="nav-item {% if anbar == 'focus' %}active{% endif %}">
-                <a class="nav-link" href="{% url 'focus_events' %}">Focus</a>
-            </li>
-            <li class="nav-item {% if anbar == 'time' %}active{% endif %}">
-                <a class="nav-link" href="{% url 'time_spent_timestamps' %}">Time</a>
-            </li>
-            <li class="nav-item {% if anbar == 'mturk' %}active{% endif %}">
-                <a class="nav-link disabled" href="#">mTurk</a>
-            </li>
-            <li class="nav-item {% if anbar == 'paypal' %}active{% endif %}">
-                <a class="nav-link disabled" href="#">PayPal</a>
-            </li>
-        </ul>
+                    <li class="nav-item {% if anbar == 'export' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'individual_sessions_export' %}">Export</a>
+                    </li>
+                    <li class="nav-item dropdown {% if anbar == 'focus' %}active{% endif %}">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false">
+                            Focus
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <a class="dropdown-item" href="{% url 'focus_events' %}">Raw focus data</a>
+                            <a class="dropdown-item" href="{% url 'focus_per_page_report' %}">Focus/unfocus per page</a>
+                        </div>
+                    </li>
 
-        <a class="btn btn-lg btn-success mx-3" role="button" id="export_data">Export as CSV</a>
+                    <li class="nav-item {% if anbar == 'time' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'time_spent_timestamps' %}">Time</a>
+                    </li>
+
+                </ul>
+
+                <a class="btn btn-lg btn-success mx-3" role="button" id="export_data">Export as CSV</a>
 
 
-    </div>
-</nav>
-{%endwith %}
-{{block.super}}
+            </div>
+        </nav>
+    {% endwith %}
+    {{ block.super }}
 
 {% endblock %}
 {% block internal_styles %}
-{{ block.super }}
-<style>
-    .fixed-top-2 {
-        margin-top: 56px;
-        margin-bottom: 56px;
-    }
+    {{ block.super }}
+    <style>
+        .fixed-top-2 {
+            margin-top: 56px;
+            margin-bottom: 56px;
+        }
 
-    .container {
-        margin-top: 60px;
-    }
-</style>
+        .container {
+            margin-top: 60px;
+        }
+    </style>
 {% endblock %}

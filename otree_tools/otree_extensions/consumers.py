@@ -1,13 +1,14 @@
 import json
 from datetime import datetime
-from otree_tools.models import Enter, Exit, FocusEvent, focus_enter_codes, focus_exit_codes
+from otree_tools.models import (Enter, Exit, FocusEvent, focus_enter_codes,
+                                focus_exit_codes, allowed_export_tracker_requests)
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
 from otree.models_concrete import ParticipantToPlayerLookup
 import logging
 from otree_tools import cp
-from otree_tools.prepare_export_data import make_file
+from otree_tools.prepare_export_data import FileMaker
 from django.db.utils import IntegrityError
 from django.template.loader import render_to_string
 
@@ -167,7 +168,7 @@ def connect(self, message, **kwargs):
 
 
 class ExportTracker(JsonWebsocketConsumer):
-    url_pattern = (r'^/exporttracker/(?P<inner_group_id>.*)$')
+    url_pattern = r'^/exporttracker/(?P<inner_group_id>.*)$'
     progress_block_name = 'tester/includes/progress_block.html'
 
     def connection_groups(self, **kwargs):
@@ -176,10 +177,14 @@ class ExportTracker(JsonWebsocketConsumer):
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
         request = raw_content['request']
+        tracker_type = raw_content['tracker_type']
+
         if request == 'export':
             msg = {'button': render_to_string(self.progress_block_name, {})}
             self.send(msg)
-            make_file(channel_to_response=self.kwargs['inner_group_id'])
+            file_maker = FileMaker(channel_to_response=self.kwargs['inner_group_id'],
+                                   tracker_type=tracker_type)
+            file_maker.get_data()
 
     def connect(self, message, **kwargs):
         logger.info('Client connected to export tracker...')

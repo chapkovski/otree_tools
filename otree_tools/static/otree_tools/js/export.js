@@ -15,6 +15,7 @@ var socket = new WebSocket(ws_path);
 function sendingEvent() {
     var msg = JSON.stringify({
         'request': 'export',
+        'tracker_type': tracker_type,
     });
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(msg));
@@ -26,9 +27,6 @@ $(function () {
         var $button_container = $('#export_data');
         $button_container.click(function () {
             sendingEvent();
-
-
-            //this will redirect us in new tab
 
         });
         socket.onmessage = function (event) {

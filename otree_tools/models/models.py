@@ -14,8 +14,8 @@ FOCUS_EXIT_EVENT_TYPES = [(1, 'Visibility: off'), (2, 'Focus: off'), (5, 'Form s
 FOCUS_EVENT_TYPES = FOCUS_ENTER_EVENT_TYPES + FOCUS_EXIT_EVENT_TYPES
 focus_exit_codes = [i for i, j in FOCUS_EXIT_EVENT_TYPES]
 focus_enter_codes = [i for i, j in FOCUS_ENTER_EVENT_TYPES]
-
 WAITFORIMAGES_CHOICES = [(False, 'Before images are loaded'), (True, 'After images are loaded')]
+allowed_export_tracker_requests = r'(time|focus_per_page|focus_raw)'
 """
 There are 3 different scenarios how a client may exit the page.
 1. He can submit the form by clicking next (or in oTree any other button because the entire page
@@ -68,18 +68,22 @@ class Enter(GeneralEvent):
 
 
 class ExitExportManager(models.Manager):
-    def get_query_set(self):
+    """Manager for correctly exporting data to templates and csv from time trackers."""
+
+    def time(self):
         csv_data = super().get_queryset().filter(
             enter__isnull=False,
         ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
                                           output_field=DurationField()))
-        for i in csv_data:
-            if i.diff is None:
-                cp(f'{i.timestamp}, {i.enter.timestamp}')
-                i.diff = i.timestamp - i.enter.timestamp
+        # for i in csv_data:
+        #     if i.diff is None:
+        #         cp(f'{i.timestamp}, {i.enter.timestamp}')
+        #         i.diff = i.timestamp - i.enter.timestamp
         return csv_data
 
+
 class Exit(GeneralEvent):
+    objects = models.Manager()
     export = ExitExportManager()
     enter = models.OneToOneField(to='Enter', related_name='exit', null=True)
     timestamp = models.DateTimeField()
@@ -88,17 +92,13 @@ class Exit(GeneralEvent):
     def __str__(self):
         return f'id: {self.pk}, Exit: {self.page_name}; time: {self.timestamp}; Type: {self.get_exit_type_display()} '
 
-class FocusRawExportManager(models.Manager):
-    def get_query_set(self):
-        csv_data = super().get_queryset().filter(
-            enter__isnull=False,
-        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                          output_field=DurationField()))
-        for i in csv_data:
-            if i.diff is None:
-                cp(f'{i.timestamp}, {i.enter.timestamp}')
-                i.diff = i.timestamp - i.enter.timestamp
-        return csv_data
+
+class FocusExportManager(models.Manager):
+    def focus_per_page(self):
+        return self.model.objects.get_per_page_report()
+
+    def focus_raw(self):
+        return super().get_queryset()
 
 
 class FocusManager(models.Manager):
@@ -158,7 +158,7 @@ class FocusManager(models.Manager):
 
 class FocusEvent(GeneralEvent):
     objects = FocusManager()
-    export = FocusRawExportManager()
+    export = FocusExportManager()
     event_desc_type = models.CharField(max_length=1000)
     event_num_type = models.IntegerField(choices=FOCUS_EVENT_TYPES)
     # we track focus events that have corresponding closuring focus event to

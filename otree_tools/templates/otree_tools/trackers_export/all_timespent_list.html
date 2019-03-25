@@ -35,7 +35,7 @@
                     <td>{{ s.timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.diff }}</td>
                     <td>{{ s.get_exit_type_display }}</td>
-                <td>{{ s.enter.get_wait_for_images_display }}</td>
+                    <td>{{ s.enter.get_wait_for_images_display }}</td>
 
 
                 </tr>
@@ -65,7 +65,7 @@
 {% block internal_scripts %}
     {{ block.super }}
     <script>
-        var go_to_url = "{% url 'export_time' innerurl='' %}";
+        var tracker_type = 'time';
     </script>
     <script src="{% static "otree_tools/js/export.js" %}"></script>
 {% endblock %}
