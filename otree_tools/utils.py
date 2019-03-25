@@ -35,8 +35,8 @@ def get_time_per_page(player, page_name):
 
 
 def get_focused_time(player, page_name):
-    return FocusEvent.objects.get_focused_time_per_page(player, page_name)
+    return FocusEvent.objects.get_focused_time_per_page(player.id, player.participant.id, page_name)
 
 
 def get_unfocused_time(player, page_name):
-    return FocusEvent.objects.get_unfocused_time_per_page(player, page_name)
+    return FocusEvent.objects.get_unfocused_time_per_page(player.id, player.participant.id, page_name)

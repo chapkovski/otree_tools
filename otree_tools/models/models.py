@@ -4,7 +4,8 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from otree_tools import cp
-from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When
+
 from datetime import timedelta
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
@@ -75,9 +76,9 @@ class Exit(GeneralEvent):
 
 
 class FocusManager(models.Manager):
-    def _get_tracked_time(self, player, page_name, focus_type):
-        tot_exits = super().get_queryset().filter(player_id=player.pk,
-                                                  participant=player.participant,
+    def _get_tracked_time(self, player_id, participant_id, page_name, focus_type):
+        tot_exits = super().get_queryset().filter(player_id=player_id,
+                                                  participant_id=participant_id,
                                                   page_name=page_name,
                                                   entry__isnull=False,
                                                   event_num_type__in=focus_type,
@@ -89,23 +90,32 @@ class FocusManager(models.Manager):
         else:
             return timedelta()
 
-    def get_focused_time_per_page(self, player, page_name):
-        return self._get_tracked_time(player, page_name, focus_exit_codes)
+    def get_focused_time_per_page(self, player_id, participant_id, page_name):
+        return self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes)
 
-    def get_unfocused_time_per_page(self, player, page_name):
-        return self._get_tracked_time(player, page_name, focus_enter_codes)
+    def get_unfocused_time_per_page(self, player_id, participant_id, page_name):
+        return self._get_tracked_time(player_id, participant_id, page_name,
+                                      focus_enter_codes)
 
     def get_per_page_report(self):
-        objs = super().get_queryset().filter(entry__isnull=False).values('app_name', 'player_id', 'participant', 'page_name'
-                                                          ).annotate(player_pk=Min('player_id'))
-        for o in objs:
-            player_content_type = ContentType.objects.get(app_label=o['app_name'], model='player')
-            player = player_content_type.get_object_for_this_type(pk=o['player_id'])
-            o['focused_time'] = self.get_focused_time_per_page(player, o['page_name'])
-            o['unfocused_time'] = self.get_unfocused_time_per_page(player, o['page_name'])
-            o['session_code'] = player.participant.session.code
-            o['participant_code'] = player.participant.code
-        return o
+        # TODO: what we do here is we need conditionally build two aggregators: for
+        # enter? and exit? focus events
+        filter(player_id=player_id,
+               participant_id=participant_id,
+               page_name=page_name,
+               entry__isnull=False,
+               event_num_type__in=focus_type,
+               ).aggregate(
+            diff=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
+                                       output_field=DurationField())))['diff']
+        # for o in objs:
+        #     player_content_type = ContentType.objects.get(app_label=o['app_name'], model='player')
+        #     player = player_content_type.get_object_for_this_type(pk=o['player_id'])
+        #     o['focused_time'] = self.get_focused_time_per_page(player, o['page_name'])
+        #     o['unfocused_time'] = self.get_unfocused_time_per_page(player, o['page_name'])
+        #     o['session_code'] = player.participant.session.code
+        #     o['participant_code'] = player.participant.code
+        return objs
 
 
 class FocusEvent(GeneralEvent):
