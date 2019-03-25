@@ -57,6 +57,7 @@ class GeneralEvent(models.Model):
     player_id = models.PositiveIntegerField()
     player = GenericForeignKey('content_type', 'player_id')
     timestamp = models.DateTimeField()
+    round_number = models.PositiveIntegerField()
 
 
 class Enter(GeneralEvent):
@@ -77,18 +78,24 @@ class Exit(GeneralEvent):
 
 class FocusManager(models.Manager):
     def _get_tracked_time(self, player_id, participant_id, page_name, focus_type):
-        tot_exits = super().get_queryset().filter(player_id=player_id,
-                                                  participant_id=participant_id,
-                                                  page_name=page_name,
-                                                  entry__isnull=False,
-                                                  event_num_type__in=focus_type,
-                                                  ).aggregate(
-            diff=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
-                                       output_field=DurationField())))['diff']
-        if tot_exits:
-            return tot_exits
-        else:
-            return timedelta()
+        tot_exits = super().get_queryset().values('participant',
+                                                  'page_name',
+                                                  'player_id'). \
+            filter(player_id=player_id,
+                   participant_id=participant_id,
+                   page_name=page_name,
+                   entry__isnull=False,
+                   ). \
+            aggregate(
+            diff=Sum(Case(
+                When(event_num_type__in=focus_type,
+                     then=ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
+                                            output_field=DurationField())),
+                output_field=DurationField(),
+            ))
+        )
+
+        return tot_exits.get('diff') or timedelta()
 
     def get_focused_time_per_page(self, player_id, participant_id, page_name):
         return self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes)
@@ -98,24 +105,29 @@ class FocusManager(models.Manager):
                                       focus_enter_codes)
 
     def get_per_page_report(self):
-        # TODO: what we do here is we need conditionally build two aggregators: for
-        # enter? and exit? focus events
-        filter(player_id=player_id,
-               participant_id=participant_id,
-               page_name=page_name,
-               entry__isnull=False,
-               event_num_type__in=focus_type,
-               ).aggregate(
-            diff=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
-                                       output_field=DurationField())))['diff']
-        # for o in objs:
-        #     player_content_type = ContentType.objects.get(app_label=o['app_name'], model='player')
-        #     player = player_content_type.get_object_for_this_type(pk=o['player_id'])
-        #     o['focused_time'] = self.get_focused_time_per_page(player, o['page_name'])
-        #     o['unfocused_time'] = self.get_unfocused_time_per_page(player, o['page_name'])
-        #     o['session_code'] = player.participant.session.code
-        #     o['participant_code'] = player.participant.code
-        return objs
+        q = super().get_queryset().values('participant',
+                                          'page_name',
+                                          'player_id',
+                                          'participant__code',
+                                          'participant__session__code',
+                                          'round_number'). \
+            filter(entry__isnull=False). \
+            annotate(
+            focused_time=Sum(Case(
+                When(event_num_type__in=focus_exit_codes,
+                     then=ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
+                                            output_field=DurationField())),
+                output_field=DurationField(),
+            )),
+            unfocused_time=Sum(Case(
+                When(event_num_type__in=focus_enter_codes,
+                     then=ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
+                                            output_field=DurationField())),
+                output_field=DurationField(),
+            )),
+
+        )
+        return q
 
 
 class FocusEvent(GeneralEvent):
@@ -128,3 +140,6 @@ class FocusEvent(GeneralEvent):
                                  related_name='closure',
                                  null=True,
                                  )
+
+    def __str__(self):
+        return f'id: {self.pk}, event_desc_type: {self.event_desc_type}; time: {self.timestamp};'

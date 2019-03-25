@@ -1,24 +1,20 @@
 from django.conf.urls import url, include
 
-from otree_tools import views as v
+from otree_tools.views import *
 from serializer_ext.views import DownloadJson
 
-urlpatterns = [url(v.ListPVarsView.url_pattern, v.ListPVarsView.as_view(),
-                   name=v.ListPVarsView.url_name),
-               url(v.PVarsCSVExport.url_pattern, v.PVarsCSVExport.as_view(),
-                   name=v.PVarsCSVExport.url_name),
-               url(v.StreamingCSVExport.url_pattern, v.StreamingCSVExport.as_view(),
-                   name=v.StreamingCSVExport.url_name),
-               url(v.AllSessionsList.url_pattern, v.AllSessionsList.as_view(),
-                   name=v.AllSessionsList.url_name),
-               url(v.FocusEventList.url_pattern, v.FocusEventList.as_view(),
-                   name=v.FocusEventList.url_name),
-               url(v.EnterExitEventList.url_pattern, v.EnterExitEventList.as_view(),
-                   name=v.EnterExitEventList.url_name),
-               url(r'^session_data/(?P<session_code>.*)/(?P<filetype>.*)/$', v.SpecificSessionDataView.as_view(),
-                   name='session_data'),
-               url(r'^download_json/(?P<session_code>\w+)$', DownloadJson.as_view(),
-                   name='download_json'),
-               url(v.StreamingFocusCSV.url_pattern, v.StreamingFocusCSV.as_view(),
-                   name=v.StreamingFocusCSV.url_name),
-               ]
+views_to_add = [
+    # Trackers views:
+    FocusEventList,
+    EnterExitEventList,
+    StreamingCSVExport,
+    StreamingFocusCSV,
+    # Export views
+    ListPVarsView,
+    PVarsCSVExport,
+    SpecificSessionDataView,
+    DownloadJson,
+    AllSessionsList,
+
+]
+urlpatterns = [url(i.url_pattern, i.as_view(), name=i.url_name) for i in views_to_add]

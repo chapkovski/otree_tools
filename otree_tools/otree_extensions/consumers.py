@@ -74,7 +74,8 @@ class TimeTracker(GeneralTracker):
                          'app_name': app_name, }
         general_params = {**filter_params,
                           'player': player,
-                          'timestamp': timestamp}
+                          'timestamp': timestamp,
+                          'round_number': player.round_number}
         if event_type == 'enter':
             if participant is not None:
                 Enter.objects.create(**general_params,
@@ -135,10 +136,8 @@ class FocusTracker(GeneralTracker):
             entry = None
         return entry
 
-
     def receive(self, content, **kwargs):
         raw_content = json.loads(content)
-        cp(raw_content)
         raw_time = raw_content['timestamp']
         self.timestamp = datetime.fromtimestamp(raw_time / 1000)
         self.event_num_type = raw_content['event_num_type']
@@ -152,6 +151,7 @@ class FocusTracker(GeneralTracker):
             creating_params = {**self.filter_params,
                                'timestamp': self.timestamp,
                                'player': self.player,
+                               'round_number': self.player.round_number,
                                'event_desc_type': event_desc_type,
                                "event_num_type": self.event_num_type,
                                "entry": entry}

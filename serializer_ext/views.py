@@ -26,6 +26,7 @@ def get_file_name(session_code, random_code):
 def downloadable_filename(session_code):
     return 'session_data_{}.json'.format(session_code)
 
+
 # TODO: move up imports
 import json
 from django.template import Context, loader
@@ -33,6 +34,9 @@ from django.template import Context, loader
 
 class DownloadJson(TemplateView):
     template_name = 'download_json.json'
+    url_pattern = r'^download_json/(?P<session_code>\w+)$'
+    url_name = 'download_json'
+
     def get(self, request, *args, **kwargs):
         response = HttpResponse(content_type='application/json')
         session_code = self.kwargs['session_code']
