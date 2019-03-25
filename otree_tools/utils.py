@@ -28,10 +28,9 @@ def get_time_per_page(player, page_name):
                                     enter__isnull=False,
                                     ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
                                                                            output_field=DurationField())))['diff']
-    if tot_exits:
-        return tot_exits
-    else:
-        return timedelta()
+
+    return tot_exits or timedelta()
+
 
 
 def get_focused_time(player, page_name):

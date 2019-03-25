@@ -75,10 +75,7 @@ class ExitExportManager(models.Manager):
             enter__isnull=False,
         ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
                                           output_field=DurationField()))
-        # for i in csv_data:
-        #     if i.diff is None:
-        #         cp(f'{i.timestamp}, {i.enter.timestamp}')
-        #         i.diff = i.timestamp - i.enter.timestamp
+
         return csv_data
 
 

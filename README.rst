@@ -111,3 +111,7 @@ streaming export of time and focus trackers; issue with time tracker events is s
         are loaded.
 
 1.0.2: Fixing cp issue
+
+1.1.0: Total reshuffle of trackers
+
+1.1.1: Minor change in exporting channel
