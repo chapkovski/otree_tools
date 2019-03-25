@@ -6,6 +6,7 @@ from serializer_ext.views import DownloadJson
 views_to_add = [
     # Trackers views:
     FocusEventList,
+    FocusPerPageReport,
     EnterExitEventList,
     StreamingCSVExport,
     StreamingFocusCSV,

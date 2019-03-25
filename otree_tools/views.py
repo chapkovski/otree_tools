@@ -1,18 +1,19 @@
 import vanilla
-from django.db.models import ExpressionWrapper, F, DurationField
-
-from django.views.generic import ListView, TemplateView, View
-from otree.models import Session, Participant
-from otree.views.export import get_export_response
-# BLOCK FOR MTURK HITS
-from otree.views.mturk import get_mturk_client
-from otree_tools.models import Exit, FocusEvent
-import json
-from django.http import HttpResponse, StreamingHttpResponse
-from .export import export_wide
 import csv
 import os
+import json
+from datetime import datetime
+
+from django.db.models import ExpressionWrapper, F, DurationField
+from django.views.generic import ListView, TemplateView, View
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse
+
+from otree.models import Session, Participant
+from otree.views.export import get_export_response
+
+from .models import Exit, FocusEvent
+from .export import export_wide
 from . import __version__ as otree_tools_version
 
 
@@ -47,7 +48,7 @@ class PaginatedListView(ListView):
 
 
 class EnterExitEventList(EnterExitMixin, PaginatedListView):
-    template_name = 'otree_tools/all_timespent_list.html'
+    template_name = 'otree_tools/trackers_export/all_timespent_list.html'
     url_name = 'time_spent_timestamps'
     url_pattern = r'^time_spent_per_page/$'
     display_name = 'Time spent per page [otree-tools]'
@@ -56,19 +57,22 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
     navbar_active_tag = 'time'
 
 
-class StreamingCSVExport(View):
+class TempFileCSVExport(View):
     """Receives a temp file name prepared in consumers, and returns it to a user.
     That is mostly for dealing with large files that can provoke server timeout errors."""
     url_name = 'export_time'
-    url_pattern = r'^export_time(?P<innerurl>.*)/$'
+    url_pattern = r'^export_tracker_data/(?P<tracker_type>(time|focus))/(?P<temp_file_name>.*)/$'
     content_type = 'text/csv'
-    filename = 'time_data.csv'
 
     def get(self, request, *args, **kwargs):
-        file_path = kwargs.get('innerurl')
+        file_path = kwargs.get('temp_file_name')
+        tracker_type = kwargs.get('tracker_type')
+        curtime = datetime.now().strftime("%d_%m_%Y__%H_%M_%S")
+        filename = f'{tracker_type}_{curtime}.csv'
+
         fsock = open(file_path, "r")
         response = HttpResponse(fsock, content_type=self.content_type)
-        response['Content-Disposition'] = f'attachment; filename="{self.filename}"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         fsock.close()
         try:
             os.remove(file_path)
@@ -80,9 +84,22 @@ class StreamingCSVExport(View):
 
 ########### BLOCK: FOCUS EVENTS EXPORT BLOCK ##############################################################
 
+class FocusPerPageReport(PaginatedListView):
+    template_name = 'otree_tools/trackers_export/focus_per_page_report.html'
+    url_name = 'focus_per_page_report'
+    url_pattern = r'^focus_per_page_report/$'
+    display_name = 'Focused/unfocused [otree-tools]'
+    context_object_name = 'focusevents'
+    paginate_by = 50
+    navbar_active_tag = 'focus'
+    export_link_name = 'streaming_focus_csv'
+
+    def get_queryset(self):
+        return FocusEvent.objects.get_per_page_report()
+
 
 class FocusEventList(PaginatedListView):
-    template_name = 'otree_tools/focus_event_list.html'
+    template_name = 'otree_tools/trackers_export/focus_event_list.html'
     url_name = 'focus_events'
     url_pattern = r'^focus_events/$'
     display_name = 'Focus/unfocus events [otree-tools]'
@@ -112,7 +129,7 @@ class StreamingFocusCSV(StreamingCSVExport):
         return {'session_code': item.participant.session.code,
                 'participant_code': item.participant.code,
                 'app_name': item.app_name,
-                'round_number': item.player.round_number,
+                'round_number': item.round_number,
                 'page_name': item.page_name,
                 'timestamp': item.timestamp,
                 'event_desc_type': item.event_desc_type}
@@ -137,6 +154,7 @@ class HomeView(TemplateView):
         c['nbar'] = self.navbar_active_tag
         c['version'] = otree_tools_version
         return c
+
 
 ########### BLOCK: EXPORTING PARTICIPANT.VARS MODULE ##############################################################
 
@@ -220,6 +238,7 @@ class PVarsCSVExport(PVarsMixin, TemplateView):
             writer.writerow(p)
 
         return response
+
 
 ############ END OF: EXPORTING PARTICIPANT.VARS MODULE #############################################################
 

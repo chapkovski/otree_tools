@@ -182,8 +182,8 @@ class ExportTracker(JsonWebsocketConsumer):
             make_file(channel_to_response=self.kwargs['inner_group_id'])
 
     def connect(self, message, **kwargs):
-        print('Client connected to export tracker...')
+        logger.info('Client connected to export tracker...')
 
     def disconnect(self, message, **kwargs):
-        print('Client disconnected from export tracker...')
+        logger.info('Client disconnected from export tracker...')
 #

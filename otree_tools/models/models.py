@@ -67,13 +67,38 @@ class Enter(GeneralEvent):
         return f'id: {self.pk}, Enter: {self.page_name}; time: {self.timestamp}'
 
 
+class ExitExportManager(models.Manager):
+    def get_query_set(self):
+        csv_data = super().get_queryset().filter(
+            enter__isnull=False,
+        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                          output_field=DurationField()))
+        for i in csv_data:
+            if i.diff is None:
+                cp(f'{i.timestamp}, {i.enter.timestamp}')
+                i.diff = i.timestamp - i.enter.timestamp
+        return csv_data
+
 class Exit(GeneralEvent):
+    export = ExitExportManager()
     enter = models.OneToOneField(to='Enter', related_name='exit', null=True)
     timestamp = models.DateTimeField()
     exit_type = models.IntegerField(choices=EXITTYPES)
 
     def __str__(self):
         return f'id: {self.pk}, Exit: {self.page_name}; time: {self.timestamp}; Type: {self.get_exit_type_display()} '
+
+class FocusRawExportManager(models.Manager):
+    def get_query_set(self):
+        csv_data = super().get_queryset().filter(
+            enter__isnull=False,
+        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                          output_field=DurationField()))
+        for i in csv_data:
+            if i.diff is None:
+                cp(f'{i.timestamp}, {i.enter.timestamp}')
+                i.diff = i.timestamp - i.enter.timestamp
+        return csv_data
 
 
 class FocusManager(models.Manager):
@@ -106,6 +131,7 @@ class FocusManager(models.Manager):
 
     def get_per_page_report(self):
         q = super().get_queryset().values('participant',
+                                          'app_name',
                                           'page_name',
                                           'player_id',
                                           'participant__code',
@@ -132,6 +158,7 @@ class FocusManager(models.Manager):
 
 class FocusEvent(GeneralEvent):
     objects = FocusManager()
+    export = FocusRawExportManager()
     event_desc_type = models.CharField(max_length=1000)
     event_num_type = models.IntegerField(choices=FOCUS_EVENT_TYPES)
     # we track focus events that have corresponding closuring focus event to
