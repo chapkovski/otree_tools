@@ -169,7 +169,7 @@ def connect(self, message, **kwargs):
 
 class ExportTracker(JsonWebsocketConsumer):
     url_pattern = r'^/exporttracker/(?P<inner_group_id>.*)$'
-    progress_block_name = 'tester/includes/progress_block.html'
+    progress_block_name = 'otree_tools/includes/progress_block.html'
 
     def connection_groups(self, **kwargs):
         return [self.kwargs['inner_group_id']]

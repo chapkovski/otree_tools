@@ -37,8 +37,9 @@
                     </li>
 
                 </ul>
-
-                <a class="btn btn-lg btn-success mx-3" role="button" id="export_data">Export as CSV</a>
+                {% if export_activated|default:False %}
+                    <a class="btn btn-lg btn-success mx-3" role="button" id="export_data">Export as CSV</a>
+                {% endif %}
 
 
             </div>

@@ -34,7 +34,7 @@ $(function () {
             $button_container.html(obj.button);
             var has_url = obj.hasOwnProperty('url');
             if (has_url) {
-                window.open(obj.url);
+                window.location.replace(obj.url);
             }
             ;
         };

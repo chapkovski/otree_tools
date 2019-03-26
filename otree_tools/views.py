@@ -34,6 +34,7 @@ class EnterExitMixin:
 class PaginatedListView(ListView):
     navbar_active_tag = None
     export_link_name = None
+    export_activated = None
 
     def get_context_data(self, **kwargs):
         c = super().get_context_data(**kwargs)
@@ -44,6 +45,7 @@ class PaginatedListView(ListView):
         c['allowed_range'] = range(max(1, curpage_num - epsilon), min(curpage_num + epsilon, paginator.num_pages) + 1)
         if self.export_link_name:
             c['export_link'] = reverse(self.export_link_name)
+        c['export_activated'] = self.export_activated or False
         return c
 
 
@@ -55,6 +57,7 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
     context_object_name = 'timestamps'
     paginate_by = 50
     navbar_active_tag = 'time'
+    export_activated = True
 
 
 class TempFileCSVExport(View):
@@ -92,7 +95,7 @@ class FocusPerPageReport(PaginatedListView):
     context_object_name = 'focusevents'
     paginate_by = 50
     navbar_active_tag = 'focus'
-
+    export_activated = True
 
     def get_queryset(self):
         return FocusEvent.objects.get_per_page_report()
@@ -107,6 +110,7 @@ class FocusEventList(PaginatedListView):
     queryset = FocusEvent.objects.all()
     paginate_by = 50
     navbar_active_tag = 'focus'
+    export_activated = True
 
 
 ############ END OF: FOCUS EVENTS EXPORT BLOCK #############################################################
