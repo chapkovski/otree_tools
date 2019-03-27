@@ -4,7 +4,7 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from otree_tools import cp
-from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When, Value
 
 from datetime import timedelta
 
@@ -73,8 +73,8 @@ class ExitExportManager(models.Manager):
     def time(self):
         csv_data = super().get_queryset().filter(
             enter__isnull=False,
-        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                          output_field=DurationField()))
+        ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                               output_field=DurationField())))
 
         return csv_data
 

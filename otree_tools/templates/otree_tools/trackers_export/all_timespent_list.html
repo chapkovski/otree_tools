@@ -26,16 +26,16 @@
             {% for s in timestamps %}
                 <tr>
 
-                    <td>{{ s.participant.session.code }}</td>
-                    <td>{{ s.participant.code }}</td>
+                    <td>{{ s.participant__session__code }}</td>
+                    <td>{{ s.participant__code }}</td>
                     <td>{{ s.app_name }}</td>
-                    <td>{{ s.player.round_number }}</td>
+                    <td>{{ s.round_number }}</td>
                     <td>{{ s.page_name }}</td>
-                    <td>{{ s.enter.timestamp|date:'Y-m-d H:i:s.u' }}</td>
+                    <td>{{ s.enter_timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.diff }}</td>
-                    <td>{{ s.get_exit_type_display }}</td>
-                    <td>{{ s.enter.get_wait_for_images_display }}</td>
+                    <td>{{ s.exit_type }}</td>
+                    <td>{{ s.wait_for_images }}</td>
 
 
                 </tr>
@@ -47,19 +47,6 @@
         No information about time tracking is available. If you want to track time spent per page, insert
         <code>{% verbatim %} {%&nbsp;tracking_time&nbsp;%} {% endverbatim %}</code> to a corresponding template.
     {% endif %}
-{% endblock %}
-
-{% block internal_styles %}
-    {{ block.super }}
-    <style>
-        .red {
-            color: red
-        }
-
-        .green {
-            color: green
-        }
-    </style>
 {% endblock %}
 
 {% block internal_scripts %}

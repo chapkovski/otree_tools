@@ -65,10 +65,9 @@
 
     $(function () {
         $('form#form').on('submit', function () {
-            console.log('submitting....');
+            var submittingformtime = new Date().getTime();
             $(window).unbind('blur');
             $(window).unbind('visibilitychange');
-            submittingformtime = new Date().getTime();
             focus_tracker_sendingEvent(5, submittingformtime);
         });
     })

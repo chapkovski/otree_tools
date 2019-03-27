@@ -14,20 +14,28 @@ from otree.views.export import get_export_response
 
 from .models import Exit, FocusEvent, allowed_export_tracker_requests
 from .export import export_wide
-from . import __version__ as otree_tools_version
+from . import __version__ as otree_tools_version, cp
 
 
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
 class EnterExitMixin:
     def get_queryset(self):
-        # TODO: group by page name?
-        tot_exits = Exit.objects.filter(
-            enter__isnull=False,
-        ).annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                          output_field=DurationField()))
-        for i in tot_exits:
-            if i.diff is None:
-                i.diff = i.timestamp - i.enter.timestamp
+        tot_exits = Exit.objects.filter(enter__isnull=False, ). \
+            values('participant',
+                   'app_name',
+                   'page_name',
+                   'player_id',
+                   'participant__code',
+                   'participant__session__code',
+                   'round_number',
+                   ). \
+            annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                            output_field=DurationField()),
+                     timestamp=F('timestamp'),
+                     enter_timestamp=F('enter__timestamp'),
+                     exit_type=F('exit_type'),
+                     wait_for_images=F('enter__wait_for_images'))
+        cp(tot_exits)
         return tot_exits
 
 
