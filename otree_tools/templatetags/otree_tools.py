@@ -1,7 +1,7 @@
 from django import template
 from django.template import TemplateSyntaxError, Context
-from otree_tools.models.models import FOCUS_EVENT_TYPES
-
+from otree_tools.models.models import FOCUS_EVENT_TYPES, EXITTYPES
+d_focus_event_types = dict(FOCUS_EVENT_TYPES)
 
 class ButtonTagError(Exception):
     pass
@@ -33,7 +33,7 @@ def tracking_time(context, wait_for_images=True, *args, **kwargs):
 @register.inclusion_tag('otree_tools/tags/FocusTracker.html', takes_context=True, name='tracking_focus')
 def tracking_focus_func(context, *args, **kwargs):
     c = universal_tracker(context, 'tracking_focus')
-    c['type_correspondence'] = dict(FOCUS_EVENT_TYPES)
+    c['type_correspondence'] = d_focus_event_types
     return c
 
 
@@ -62,3 +62,8 @@ def confirm_button(context,
     c['yes_button'] = yes_button
     c['no_button'] = no_button
     return c
+
+
+@register.filter
+def convert_exit(value):
+    return dict(EXITTYPES)[int(value)]

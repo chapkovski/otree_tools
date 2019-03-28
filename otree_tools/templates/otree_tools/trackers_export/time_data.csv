@@ -1,4 +1,5 @@
+{% load otree_tools %}
 "Session code","Participant code","App name","Round number","Page name","Entrance timestamp","Exit timestamp","Duration","Exit type","Enter:wait for images"
 {% for s in events%}
-	{{ s.participant__session__code}},{{ s.participant__code}},{{ s.app_name}},{{ s.round_number}},{{ s.page_name }},{{ s.enter.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.diff}},{{ s.exit_type}},{{ s.enter.wait_for_images }}
+	{{ s.participant__session__code}},{{ s.participant__code}},{{ s.app_name}},{{ s.round_number}},{{ s.page_name }},{{ s.enter_timestamp|date:'Y-m-d H:i:s.u'}},{{ s.timestamp|date:'Y-m-d H:i:s.u'}},{{ s.diff}},{{ s.exit_type|convert_exit}},{{ s.wait_for_images|yesno:"Yes,No" }}
 {% endfor %}

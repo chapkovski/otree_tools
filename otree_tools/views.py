@@ -20,23 +20,7 @@ from . import __version__ as otree_tools_version, cp
 # TIME STAMPS VIEWS FOR TRACKING_TIME and TRACKING_FOCUS
 class EnterExitMixin:
     def get_queryset(self):
-        tot_exits = Exit.objects.filter(enter__isnull=False, ). \
-            values('participant',
-                   'app_name',
-                   'page_name',
-                   'player_id',
-                   'participant__code',
-                   'participant__session__code',
-                   'round_number',
-                   ). \
-            annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                            output_field=DurationField()),
-                     timestamp=F('timestamp'),
-                     enter_timestamp=F('enter__timestamp'),
-                     exit_type=F('exit_type'),
-                     wait_for_images=F('enter__wait_for_images'))
-
-        return tot_exits
+        return Exit.export.time()
 
 
 class PaginatedListView(ListView):

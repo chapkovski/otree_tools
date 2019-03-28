@@ -1,5 +1,5 @@
 {% extends "otree_tools/BaseToolsAdmin.html" %}
-{% load static %}
+{% load static otree_tools %}
 {% block title %}
 
     Time tracking info (<code>{% verbatim %}{%&nbsp;tracking_time&nbsp;%}{% endverbatim %}</code> tag)
@@ -34,8 +34,8 @@
                     <td>{{ s.enter_timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.timestamp|date:'Y-m-d H:i:s.u' }}</td>
                     <td>{{ s.diff }}</td>
-                    <td>{{ s.exit_type }}</td>
-                    <td>{{ s.wait_for_images }}</td>
+                    <td>{{ s.exit_type|convert_exit }}</td>
+                    <td>{{ s.wait_for_images|yesno:"Yes,No" }}</td>
 
 
                 </tr>
