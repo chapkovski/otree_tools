@@ -46,11 +46,6 @@
 
     });
 
-    document.addEventListener("visibilitychange", function () {
-        var vis_status = document.hidden ? 1 : 3;
-        focus_tracker_sendingEvent(vis_status, new Date().getTime());
-
-    })
 
 
     window.addEventListener('focus', function () {
@@ -67,7 +62,6 @@
         $('form#form').on('submit', function () {
             var submittingformtime = new Date().getTime();
             $(window).unbind('blur');
-            $(window).unbind('visibilitychange');
             focus_tracker_sendingEvent(5, submittingformtime);
         });
     })

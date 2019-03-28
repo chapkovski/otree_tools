@@ -89,7 +89,7 @@ class TimeTracker(GeneralTracker):
                     enter = Enter.objects.filter(**filter_params,
                                                  timestamp__lte=timestamp,
                                                  player_id=player.pk,
-                                                 exit__isnull=True).latest()
+                                                 exit__isnull=True).latest('timestamp')
                 except Enter.DoesNotExist:
                     enter = None
 
@@ -130,7 +130,7 @@ class FocusTracker(GeneralTracker):
             filter_params['event_num_type__in'] = focus_enter_codes
         entry = FocusEvent.objects.filter(**filter_params, )
         if entry.exists():
-            entry = entry.latest()
+            entry = entry.latest('timestamp')
         else:
             entry = None
         return entry

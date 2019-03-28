@@ -9,8 +9,8 @@ from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case
 from datetime import timedelta
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
-FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (3, 'Visibility: on'), (4, 'Focus: on'), ]
-FOCUS_EXIT_EVENT_TYPES = [(1, 'Visibility: off'), (2, 'Focus: off'), (5, 'Form submitted'), ]
+FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (4, 'Focus: on'), ]
+FOCUS_EXIT_EVENT_TYPES = [(2, 'Focus: off'), (5, 'Form submitted'), ]
 FOCUS_EVENT_TYPES = FOCUS_ENTER_EVENT_TYPES + FOCUS_EXIT_EVENT_TYPES
 focus_exit_codes = [i for i, j in FOCUS_EXIT_EVENT_TYPES]
 focus_enter_codes = [i for i, j in FOCUS_ENTER_EVENT_TYPES]
@@ -48,6 +48,7 @@ PROFIT!!
 class GeneralEvent(models.Model):
     class Meta:
         get_latest_by = 'timestamp'
+        # ordering = ['timestamp']
         abstract = True
 
     page_name = models.CharField(max_length=1000)
@@ -71,12 +72,23 @@ class ExitExportManager(models.Manager):
     """Manager for correctly exporting data to templates and csv from time trackers."""
 
     def time(self):
-        csv_data = super().get_queryset().filter(
-            enter__isnull=False,
-        ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                               output_field=DurationField())))
+        tot_exits = super().get_queryset().filter(enter__isnull=False, ). \
+            values('participant',
+                   'app_name',
+                   'page_name',
+                   'player_id',
+                   'participant__code',
+                   'participant__session__code',
+                   'round_number',
+                   ). \
+            annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                            output_field=DurationField()),
+                     timestamp=F('timestamp'),
+                     enter_timestamp=F('enter__timestamp'),
+                     exit_type=F('exit_type'),
+                     wait_for_images=F('enter__wait_for_images'))
 
-        return csv_data
+        return tot_exits
 
 
 class Exit(GeneralEvent):
@@ -100,6 +112,7 @@ class FocusExportManager(models.Manager):
 
 class FocusManager(models.Manager):
     def _get_tracked_time(self, player_id, participant_id, page_name, focus_type):
+
         tot_exits = super().get_queryset().values('participant',
                                                   'page_name',
                                                   'player_id'). \
@@ -120,11 +133,15 @@ class FocusManager(models.Manager):
         return tot_exits.get('diff') or timedelta()
 
     def get_focused_time_per_page(self, player_id, participant_id, page_name):
-        return self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes)
+        return self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes).total_seconds()
 
     def get_unfocused_time_per_page(self, player_id, participant_id, page_name):
         return self._get_tracked_time(player_id, participant_id, page_name,
-                                      focus_enter_codes)
+                                      focus_enter_codes).total_seconds()
+
+
+
+
 
     def get_per_page_report(self):
         q = super().get_queryset().values('participant',
@@ -149,13 +166,9 @@ class FocusManager(models.Manager):
                 output_field=DurationField(),
             )),
 
-        )
-        a = super().get_queryset()
-        a = a.filter(round_number=3,
-                     entry__isnull=False,
-                     event_num_type__in=focus_enter_codes)
-        for i, j in enumerate(a):
-            cp(i, j, j.entry.timestamp)
+        ).annotate(total_time=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
+                                                    output_field=DurationField())))
+
         return q
 
 

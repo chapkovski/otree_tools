@@ -17,6 +17,7 @@
             <th>Page name</th>
             <th>Focused time</th>
             <th>Unfocused time</th>
+            <th>Focused+unfocused time</th>
             </thead>
             <tbody>
             {% for s in focusevents %}
@@ -28,6 +29,7 @@
                     <td>{{ s.page_name }}</td>
                     <td>{{ s.focused_time|default_if_none:0 }}</td>
                     <td>{{ s.unfocused_time|default_if_none:0 }}</td>
+                    <td>{{ s.total_time|default_if_none:0 }}</td>
                 </tr>
             {% endfor %}
             </tbody>
