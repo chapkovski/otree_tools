@@ -35,7 +35,7 @@ class EnterExitMixin:
                      enter_timestamp=F('enter__timestamp'),
                      exit_type=F('exit_type'),
                      wait_for_images=F('enter__wait_for_images'))
-        cp(tot_exits)
+
         return tot_exits
 
 

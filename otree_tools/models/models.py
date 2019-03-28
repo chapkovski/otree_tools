@@ -150,6 +150,12 @@ class FocusManager(models.Manager):
             )),
 
         )
+        a = super().get_queryset()
+        a = a.filter(round_number=3,
+                     entry__isnull=False,
+                     event_num_type__in=focus_enter_codes)
+        for i, j in enumerate(a):
+            cp(i, j, j.entry.timestamp)
         return q
 
 

@@ -9,7 +9,7 @@ from otree.models_concrete import ParticipantToPlayerLookup
 import logging
 from otree_tools import cp
 from otree_tools.prepare_export_data import FileMaker
-from django.db.utils import IntegrityError
+from django.db import IntegrityError, transaction
 from django.template.loader import render_to_string
 
 logger = logging.getLogger('otree_tools.consumers')
@@ -94,18 +94,18 @@ class TimeTracker(GeneralTracker):
                     enter = None
 
                 try:
-                    e = Exit(**general_params,
-                             exit_type=exit_type,
-                             enter=enter
-                             )
-                    e.save()
+                    with transaction.atomic():
+                        Exit.objects.create(**general_params,
+                                            exit_type=exit_type,
+                                            enter=enter
+                                            )
+
                 except IntegrityError:
                     enter = None
-                    e = Exit(**general_params,
-                             exit_type=exit_type,
-                             enter=enter
-                             )
-                    e.save()
+                    Exit.objects.create(**general_params,
+                                        exit_type=exit_type,
+                                        enter=enter
+                                        )
 
     def connect(self, message, **kwargs):
         print('Client connected to time tracker...')
@@ -113,8 +113,6 @@ class TimeTracker(GeneralTracker):
     def disconnect(self, message, **kwargs):
         print('Client disconnected from time tracker...')
 
-
-#
 
 class FocusTracker(GeneralTracker):
     url_pattern = (r'^/focustracker/' + GeneralTracker.tracker_url_kwargs)
