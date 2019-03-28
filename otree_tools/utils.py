@@ -2,8 +2,9 @@ from otree.models_concrete import PageCompletion
 from otree_tools.models import Enter, Exit, FocusEvent, focus_enter_codes, focus_exit_codes
 from datetime import timedelta
 import logging
-from django.db.models import F, ExpressionWrapper, DurationField, Sum, IntegerField
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, IntegerField, Value
 from otree_tools import cp
+from django.db.models.functions import Cast
 
 logger = logging.getLogger('otree_tools.time.utils')
 
@@ -22,13 +23,16 @@ def get_seconds_per_page(player, page_name, ):
 def get_time_per_page(player, page_name):
     """Returns time per page as measured by tracking_time tag on a corresponding page."""
 
-    tot_exits = Exit.objects.filter(player_id=player.pk,
-                                    participant=player.participant,
-                                    page_name=page_name,
-                                    enter__isnull=False,
-                                    ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                                                           output_field=IntegerField())))['diff']
+    q = Exit.objects. \
+        filter(player_id=player.pk,
+               participant=player.participant,
+               page_name=page_name,
+               enter__isnull=False,
+               )
 
+    tot_exits = q.aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                                       output_field=IntegerField())))['diff']
+    cp(tot_exits)
     if tot_exits:
         return timedelta(milliseconds=tot_exits / 1000).total_seconds()
     else:

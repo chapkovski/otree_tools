@@ -4,8 +4,9 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from otree_tools import cp
-from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When, Count, BigIntegerField, IntegerField
-
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When, Count, FloatField, \
+    IntegerField
+from django.db.models.functions import Cast
 from datetime import timedelta
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
@@ -88,8 +89,6 @@ class ExitExportManager(models.Manager):
                      enter_timestamp=F('enter__timestamp'),
                      exit_type=F('exit_type'),
                      wait_for_images=F('enter__wait_for_images'))
-        for i in tot_exits:
-            cp(i['diff'], timedelta(milliseconds=i['diff']))
         return tot_exits
 
 
