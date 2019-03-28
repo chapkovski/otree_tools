@@ -84,7 +84,7 @@ class ExitExportManager(models.Manager):
                    'round_number',
                    ). \
             annotate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                                output_field=IntegerField())),
+                                                output_field=DurationField())),
                      timestamp=F('timestamp'),
                      enter_timestamp=F('enter__timestamp'),
                      exit_type=F('exit_type'),
