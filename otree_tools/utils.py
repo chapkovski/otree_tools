@@ -31,12 +31,12 @@ def get_time_per_page(player, page_name):
                )
 
     tot_exits = q.aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                                       output_field=IntegerField())))['diff']
-    cp(tot_exits)
+                                                       output_field=DurationField())))['diff']
+
     if tot_exits:
-        return timedelta(milliseconds=tot_exits / 1000).total_seconds()
+        return tot_exits.total_seconds()
     else:
-        return 0
+        return timedelta().total_seconds()
 
 
 def get_focused_time(player, page_name):
