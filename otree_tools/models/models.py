@@ -4,13 +4,14 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from otree_tools import cp
-from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When, Value
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case, When, Count, BigIntegerField, IntegerField
 
 from datetime import timedelta
 
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
+FOCUS_OFF_CODE = 2
 FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (4, 'Focus: on'), ]
-FOCUS_EXIT_EVENT_TYPES = [(2, 'Focus: off'), (5, 'Form submitted'), ]
+FOCUS_EXIT_EVENT_TYPES = [(FOCUS_OFF_CODE, 'Focus: off'), (5, 'Form submitted'), ]
 FOCUS_EVENT_TYPES = FOCUS_ENTER_EVENT_TYPES + FOCUS_EXIT_EVENT_TYPES
 focus_exit_codes = [i for i, j in FOCUS_EXIT_EVENT_TYPES]
 focus_enter_codes = [i for i, j in FOCUS_ENTER_EVENT_TYPES]
@@ -81,13 +82,14 @@ class ExitExportManager(models.Manager):
                    'participant__session__code',
                    'round_number',
                    ). \
-            annotate(diff=ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                            output_field=DurationField()),
+            annotate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
+                                                output_field=IntegerField())),
                      timestamp=F('timestamp'),
                      enter_timestamp=F('enter__timestamp'),
                      exit_type=F('exit_type'),
                      wait_for_images=F('enter__wait_for_images'))
-
+        for i in tot_exits:
+            cp(i['diff'], timedelta(milliseconds=i['diff']))
         return tot_exits
 
 
@@ -112,7 +114,6 @@ class FocusExportManager(models.Manager):
 
 class FocusManager(models.Manager):
     def _get_tracked_time(self, player_id, participant_id, page_name, focus_type):
-
         tot_exits = super().get_queryset().values('participant',
                                                   'page_name',
                                                   'player_id'). \
@@ -127,21 +128,23 @@ class FocusManager(models.Manager):
                      then=ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
                                             output_field=DurationField())),
                 output_field=DurationField(),
-            ))
+            )),
+            num_unfocus=Count(Case(When(event_num_type=FOCUS_OFF_CODE, then=1)))
         )
 
-        return tot_exits.get('diff') or timedelta()
+        return tot_exits
 
     def get_focused_time_per_page(self, player_id, participant_id, page_name):
-        return self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes).total_seconds()
+        diff = self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes)['diff'] or timedelta()
+        return diff.total_seconds()
 
     def get_unfocused_time_per_page(self, player_id, participant_id, page_name):
-        return self._get_tracked_time(player_id, participant_id, page_name,
-                                      focus_enter_codes).total_seconds()
+        diff = self._get_tracked_time(player_id, participant_id, page_name, focus_enter_codes)['diff'] or timedelta()
+        return diff.total_seconds()
 
-
-
-
+    def num_focusoff_events(self, player_id, participant_id, page_name):
+        num_unfocus = self._get_tracked_time(player_id, participant_id, page_name, focus_exit_codes)['num_unfocus']
+        return num_unfocus
 
     def get_per_page_report(self):
         q = super().get_queryset().values('participant',
@@ -165,7 +168,7 @@ class FocusManager(models.Manager):
                                             output_field=DurationField())),
                 output_field=DurationField(),
             )),
-
+            num_unfocus=Count(Case(When(event_num_type=FOCUS_OFF_CODE, then=1))),
         ).annotate(total_time=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
                                                     output_field=DurationField())))
 

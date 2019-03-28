@@ -2,7 +2,7 @@ from otree.models_concrete import PageCompletion
 from otree_tools.models import Enter, Exit, FocusEvent, focus_enter_codes, focus_exit_codes
 from datetime import timedelta
 import logging
-from django.db.models import F, ExpressionWrapper, DurationField, Sum
+from django.db.models import F, ExpressionWrapper, DurationField, Sum, BigIntegerField
 from otree_tools import cp
 
 logger = logging.getLogger('otree_tools.time.utils')
@@ -27,12 +27,12 @@ def get_time_per_page(player, page_name):
                                     page_name=page_name,
                                     enter__isnull=False,
                                     ).aggregate(diff=Sum(ExpressionWrapper(F('timestamp') - F('enter__timestamp'),
-                                                                           output_field=DurationField())))['diff']
+                                                                           output_field=BigIntegerField())))['diff']
 
     if tot_exits:
-        return tot_exits.total_seconds()
+        return timedelta(milliseconds=tot_exits / 1000).total_seconds()
     else:
-        return timedelta().total_seconds()
+        return 0
 
 
 def get_focused_time(player, page_name):
@@ -41,3 +41,7 @@ def get_focused_time(player, page_name):
 
 def get_unfocused_time(player, page_name):
     return FocusEvent.objects.get_unfocused_time_per_page(player.id, player.participant.id, page_name)
+
+
+def num_focusoff_events(player, page_name):
+    return FocusEvent.objects.num_focusoff_events(player.id, player.participant.id, page_name)

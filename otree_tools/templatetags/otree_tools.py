@@ -1,7 +1,10 @@
+from datetime import timedelta
 from django import template
 from django.template import TemplateSyntaxError, Context
 from otree_tools.models.models import FOCUS_EVENT_TYPES, EXITTYPES
+
 d_focus_event_types = dict(FOCUS_EVENT_TYPES)
+
 
 class ButtonTagError(Exception):
     pass
@@ -67,3 +70,8 @@ def confirm_button(context,
 @register.filter
 def convert_exit(value):
     return dict(EXITTYPES)[int(value)]
+
+
+@register.filter
+def duration(value):
+    return timedelta(milliseconds=int(value)/1000)
