@@ -1,4 +1,4 @@
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 
 """The following is needed just for naive debugging."""
 from termcolor import colored
