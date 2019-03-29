@@ -8,7 +8,7 @@ from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case
     IntegerField
 from django.db.models.functions import Cast
 from datetime import timedelta
-
+ENTERTYPES = [(0, 'Page shown'), (2, 'client connected')]
 EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
 FOCUS_OFF_CODE = 2
 FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (4, 'Focus: on'), ]

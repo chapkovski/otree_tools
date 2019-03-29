@@ -60,15 +60,9 @@ class GeneralTracker(JsonWebsocketConsumer):
 
 
 class TimeTracker(GeneralTracker):
-    # TODO: deal with page unloaded registered BEFORE form submitted
     url_pattern = (r'^/timetracker/' + GeneralTracker.tracker_url_kwargs)
 
-    def receive(self, content, **kwargs):
-        raw_content = json.loads(content)
-        raw_time = raw_content['timestamp']
-        timestamp = datetime.fromtimestamp(raw_time / 1000)
-        event_type = raw_content['eventtype']
-        wait_for_images = raw_content.get('wait_for_images', True)
+    def create_event(self, timestamp, event_type, exit_type=None, wait_for_images=False):
         participant, app_name, player = self.get_player_and_app()
         filter_params = {'page_name': self.page_name,
                          'participant': participant,
@@ -84,7 +78,6 @@ class TimeTracker(GeneralTracker):
 
         if event_type == 'exit':
             if participant is not None:
-                exit_type = int(raw_content['exittype'])
                 try:
                     enter = Enter.objects.filter(**filter_params,
                                                  timestamp__lte=timestamp,
@@ -107,11 +100,28 @@ class TimeTracker(GeneralTracker):
                                         enter=enter
                                         )
 
+    def receive(self, content, **kwargs):
+        """We get some data (timestamp, event type) from user and register them in db"""
+        raw_content = json.loads(content)
+        raw_time = raw_content['timestamp']
+        timestamp = datetime.fromtimestamp(raw_time / 1000)
+        event_type = raw_content['eventtype']
+        wait_for_images = raw_content.get('wait_for_images', True)
+        self.create_event(timestamp, event_type, wait_for_images)
+
     def connect(self, message, **kwargs):
-        print('Client connected to time tracker...')
+        timestamp = datetime.now()
+        event_type = 'enter'
+        wait_for_images = False
+        self.create_event(timestamp, event_type, wait_for_images)
+        logger.info('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
-        print('Client disconnected from time tracker...')
+        timestamp = datetime.now()
+        event_type = 'exit'
+        wait_for_images = False
+        self.create_event(timestamp, event_type, wait_for_images)
+        logger.info('Client disconnected from time tracker...')
 
 
 class FocusTracker(GeneralTracker):
@@ -160,9 +170,9 @@ class FocusTracker(GeneralTracker):
                 creating_params['entry'] = None
                 FocusEvent.objects.create(**creating_params)
 
-
-def connect(self, message, **kwargs):
-    print('Client connected to focus tracker...')
+    def connect(self, message, **kwargs):
+        # todo add enter event
+        print('Client connected to focus tracker...')
 
 
 class ExportTracker(JsonWebsocketConsumer):
