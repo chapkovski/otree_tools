@@ -36,7 +36,9 @@ def get_time_per_page(player, page_name):
     if tot_exits:
         return tot_exits.total_seconds()
     else:
-        return timedelta().total_seconds()
+        diffs = [i.timestamp-i.enter__timestamp for i in q]
+        sum_dif = sum(diffs, timedelta())
+        return sum_dif.total_seconds()
 
 
 def get_focused_time(player, page_name):
