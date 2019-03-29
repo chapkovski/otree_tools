@@ -8,49 +8,14 @@ from django.db.models import F, ExpressionWrapper, DurationField, Sum, Min, Case
     IntegerField
 from django.db.models.functions import Cast
 from datetime import timedelta
+from otree_tools.constants import *
 
-EXITTYPES = [(0, 'form submitted'), (1, 'page unloaded'), (2, 'client disconnected')]
-FOCUS_OFF_CODE = 2
-FOCUS_ENTER_EVENT_TYPES = [(0, 'Page shown'), (4, 'Focus: on'), ]
-FOCUS_EXIT_EVENT_TYPES = [(FOCUS_OFF_CODE, 'Focus: off'), (5, 'Form submitted'), ]
-FOCUS_EVENT_TYPES = FOCUS_ENTER_EVENT_TYPES + FOCUS_EXIT_EVENT_TYPES
-focus_exit_codes = [i for i, j in FOCUS_EXIT_EVENT_TYPES]
-focus_enter_codes = [i for i, j in FOCUS_ENTER_EVENT_TYPES]
-WAITFORIMAGES_CHOICES = [(False, 'Before images are loaded'), (True, 'After images are loaded')]
 allowed_export_tracker_requests = r'(time|focus_per_page|focus_raw)'
-"""
-There are 3 different scenarios how a client may exit the page.
-1. He can submit the form by clicking next (or in oTree any other button because the entire page
-is wrapped into form tags
-2. He can refresh the page (clicking F5 or command+R)
-3. The browser can be closed (by accident or intentionally)
-
-The Db structure is the following:
-Enter timestamp is linked to participant, and it also contains info on page. All timestamps correspond on time
-when a participant connects to a channel on page load.
-
-since there are several exit timestamp events that can be linked to one single enter event, that means that they
-should be connected to an enter timestamp via ForeignKey.
-How the connection takes place:
-The Enter event has  a boolean attribute Closed, initially set to false.
-When the client disconnects it looks for all not closed enter events for this participant-page pair, and closes them
-As a safeguard, the same closing happens everytime a client connects to the page, and before a new open Enter event is
-created.
-
-The aggregation for stats purposes is done the following way:
-* we choose all enter events for the specific participant and page
-* collect the earliest exit event for each enter event (via subquery and aggregation)
-* annotate the query via F and ExpressionWrapper to calculate the difference between this earlist exit and its parent
-Enter event
-...
-PROFIT!!
-"""
 
 
 class GeneralEvent(models.Model):
     class Meta:
         get_latest_by = 'timestamp'
-        # ordering = ['timestamp']
         abstract = True
 
     page_name = models.CharField(max_length=1000)
@@ -128,7 +93,7 @@ class FocusManager(models.Manager):
                                             output_field=DurationField())),
                 output_field=DurationField(),
             )),
-            num_unfocus=Count(Case(When(event_num_type=FOCUS_OFF_CODE, then=1)))
+            num_unfocus=Count(Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF, then=1)))
         )
 
         return tot_exits
@@ -167,7 +132,7 @@ class FocusManager(models.Manager):
                                             output_field=DurationField())),
                 output_field=DurationField(),
             )),
-            num_unfocus=Count(Case(When(event_num_type=FOCUS_OFF_CODE, then=1))),
+            num_unfocus=Count(Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF.value, then=1))),
         ).annotate(total_time=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
                                                     output_field=DurationField())))
 

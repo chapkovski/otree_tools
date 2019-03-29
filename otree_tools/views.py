@@ -30,14 +30,6 @@ class PaginatedListView(ListView):
 
     def get_context_data(self, **kwargs):
         c = super().get_context_data(**kwargs)
-        objs = c['object_list']
-        # The following is needed because of the weird error in django: the way it deals with
-        # durationfield sometimes results in None when two date fields are subtracted.
-        # If someone reads this in the future, please send me some hugs, because before I figured
-        # this out, it completely ate my brain.
-        for o in objs:
-            if o['diff'] is None:
-                o['diff'] = o['timestamp'] - o['enter_timestamp']
         c['nbar'] = self.navbar_active_tag
         curpage_num = c['page_obj'].number
         paginator = c['paginator']
@@ -58,6 +50,20 @@ class EnterExitEventList(EnterExitMixin, PaginatedListView):
     paginate_by = 50
     navbar_active_tag = 'time'
     export_activated = True
+
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        cp(c)
+        objs = c['object_list']
+        # The following is needed because of the weird error in django: the way it deals with
+        # durationfield sometimes results in None when two date fields are subtracted.
+        # If someone reads this in the future, please send me some hugs, because before I figured
+        # this out, it completely ate my brain.
+
+        for o in objs:
+            if o['diff'] is None:
+                o['diff'] = o['timestamp'] - o['enter_timestamp']
+        return c
 
 
 class TempFileCSVExport(View):
