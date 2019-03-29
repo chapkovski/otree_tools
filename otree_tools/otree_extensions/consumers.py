@@ -112,8 +112,7 @@ class TimeTracker(GeneralTracker):
     def connect(self, message, **kwargs):
         timestamp = datetime.now()
         event_type = 'enter'
-        wait_for_images = False
-        self.create_event(timestamp, event_type, wait_for_images)
+        self.create_event(timestamp, event_type, exit_type=CLIENT_DISCONNECTED)
         logger.info('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
