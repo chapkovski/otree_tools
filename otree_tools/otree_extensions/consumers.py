@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
-from otree_tools.models import (Enter, Exit, FocusEvent, focus_enter_codes,
-                                focus_exit_codes, allowed_export_tracker_requests)
+from otree_tools.models import (Enter, Exit, FocusEvent)
+from otree_tools.constants import *
 from channels.generic.websockets import JsonWebsocketConsumer
 from django.contrib.contenttypes.models import ContentType
 from otree.models import Participant
@@ -60,15 +60,10 @@ class GeneralTracker(JsonWebsocketConsumer):
 
 
 class TimeTracker(GeneralTracker):
-    # TODO: deal with page unloaded registered BEFORE form submitted
     url_pattern = (r'^/timetracker/' + GeneralTracker.tracker_url_kwargs)
 
-    def receive(self, content, **kwargs):
-        raw_content = json.loads(content)
-        raw_time = raw_content['timestamp']
-        timestamp = datetime.fromtimestamp(raw_time / 1000)
-        event_type = raw_content['eventtype']
-        wait_for_images = raw_content.get('wait_for_images', True)
+    def create_event(self, timestamp, event_type, exit_type=None, wait_for_images=False):
+        """Register new enter or exit event based on incoming data."""
         participant, app_name, player = self.get_player_and_app()
         filter_params = {'page_name': self.page_name,
                          'participant': participant,
@@ -81,10 +76,12 @@ class TimeTracker(GeneralTracker):
             if participant is not None:
                 Enter.objects.create(**general_params,
                                      wait_for_images=wait_for_images)
-
         if event_type == 'exit':
             if participant is not None:
-                exit_type = int(raw_content['exittype'])
+                most_recent_exits = Exit.objects.filter(**filter_params)
+                if most_recent_exits.exists():
+                    last_exit_time = most_recent_exits.latest('timestamp').timestamp
+                    filter_params['timestamp__gt'] = last_exit_time
                 try:
                     enter = Enter.objects.filter(**filter_params,
                                                  timestamp__lte=timestamp,
@@ -92,26 +89,40 @@ class TimeTracker(GeneralTracker):
                                                  exit__isnull=True).latest('timestamp')
                 except Enter.DoesNotExist:
                     enter = None
-
                 try:
                     with transaction.atomic():
                         Exit.objects.create(**general_params,
                                             exit_type=exit_type,
                                             enter=enter
                                             )
-
                 except IntegrityError:
+                    # This may happen despite some efforts above because of concurrency.
                     enter = None
                     Exit.objects.create(**general_params,
                                         exit_type=exit_type,
                                         enter=enter
                                         )
 
+    def receive(self, content, **kwargs):
+        """We get some data (timestamp, event type) from user and register them in db"""
+        raw_content = json.loads(content)
+        raw_time = raw_content['timestamp']
+        timestamp = datetime.fromtimestamp(raw_time / 1000)
+        event_type = raw_content['eventtype']
+        wait_for_images = raw_content.get('wait_for_images', True)
+        self.create_event(timestamp, event_type, wait_for_images)
+
     def connect(self, message, **kwargs):
-        print('Client connected to time tracker...')
+        timestamp = datetime.now()
+        event_type = 'enter'
+        self.create_event(timestamp, event_type, )
+        logger.info('Client connected to time tracker...')
 
     def disconnect(self, message, **kwargs):
-        print('Client disconnected from time tracker...')
+        timestamp = datetime.now()
+        event_type = 'exit'
+        self.create_event(timestamp, event_type, exit_type=ExitTypes.CLIENT_DISCONNECTED.value)
+        logger.info('Client disconnected from time tracker...')
 
 
 class FocusTracker(GeneralTracker):
@@ -160,9 +171,9 @@ class FocusTracker(GeneralTracker):
                 creating_params['entry'] = None
                 FocusEvent.objects.create(**creating_params)
 
-
-def connect(self, message, **kwargs):
-    print('Client connected to focus tracker...')
+    def connect(self, message, **kwargs):
+        # todo add enter event
+        print('Client connected to focus tracker...')
 
 
 class ExportTracker(JsonWebsocketConsumer):
