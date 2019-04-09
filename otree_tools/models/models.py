@@ -93,7 +93,12 @@ class FocusManager(models.Manager):
                                             output_field=DurationField())),
                 output_field=DurationField(),
             )),
-            num_unfocus=Count(Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF, then=1)))
+            num_unfocus=Count(Case(
+                When(event_num_type=2, then=1),
+                output_field=IntegerField(),
+            ))
+            # num_unfocus=Count(
+            #     Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF, then=1), output_field=IntegerField()))
         )
 
         return tot_exits
@@ -132,7 +137,8 @@ class FocusManager(models.Manager):
                                             output_field=DurationField())),
                 output_field=DurationField(),
             )),
-            num_unfocus=Count(Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF.value, then=1))),
+            num_unfocus=Count(
+                Case(When(event_num_type=FocusExitEventTypes.FOCUS_OFF.value, then=1), output_field=IntegerField())),
         ).annotate(total_time=Sum(ExpressionWrapper(F('timestamp') - F('entry__timestamp'),
                                                     output_field=DurationField())))
 
