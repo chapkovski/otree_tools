@@ -1,3 +1,6 @@
+This application is licensed under the MIT open source license with a citation 
+requirement.
+
 Copyright (c) 2018  Philipp Chapkovski.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,3 +20,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+The licensee undertakes to mention the names of the licensors (Philipp Chapkovski
+& Christian Zihlmann) and to cite the following article in all publications in 
+which results of experiments conducted with the Software are published: 
+
+Chapkovski, P., & Zihlmann, C. (2019). Introducing otree_tools: 
+A powerful package to provide process data for attention, multitasking behavior
+and effort through tracking focus. Journal of Behavioral and Experimental
+Finance, forthcoming.
